@@ -50,3 +50,23 @@ async function viewUser() {
         alert(json.error);
     }
 }
+
+async function banUser() {
+    let userEmail = document.getElementById("ban-email").value;
+
+    let response = await fetch(`/ban-user`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, userEmail})
+    });
+
+    if (response.status == 200) {
+        alert(`User '${userEmail}' banned`);
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
+}

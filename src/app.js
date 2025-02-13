@@ -28,8 +28,6 @@ app.post("/login", async (req, res) => {
     try {
         const { credentials } = req.body;
         const { email, password } = credentials;
-
-        log.info(`Log in request from ${email}`)
     
         let user = await login(email, password);
     
@@ -49,8 +47,6 @@ app.post("/view-user", async (req, res) => {
     try {
         const { credentials, userEmail } = req.body;
         const { email, password } = credentials;
-
-        log.info(`Log in request from ${email}`)
     
         let user = await login(email, password);
     
@@ -61,6 +57,29 @@ app.post("/view-user", async (req, res) => {
                 res.status(200).json({
                     user: retrievedUser,
                 });
+            } else throw new Error("User not found");
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+app.post("/ban-user", async (req, res) => {
+    try {
+        const { credentials, userEmail } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            let retrievedUser =  await database.getUser({email: userEmail.toLowerCase()});
+
+            if (retrievedUser) {
+                user.banned = true;
+                await database.replaceUser(user)
+                res.status(200).send();
             } else throw new Error("User not found");
         }
         else throw new Error("User lacks permission");

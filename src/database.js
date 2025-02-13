@@ -9,6 +9,13 @@ async function getUser(query) {
     return await users.findOne(query);
 }
 
+async function replaceUser(user) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    await users.replaceOne({_id: user._id}, user);
+}
+
 module.exports = {
-    getUser
+    getUser, replaceUser
 }
