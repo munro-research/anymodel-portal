@@ -1,0 +1,17 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "prod": "NODE_ENV=production node app.js"
+  },
+  "description": "",
+  "dependencies": {
+    "compression": "^1.7.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "nodemon": "^3.1.7",
+    "winston": "^3.16.0"
+  }
+}
