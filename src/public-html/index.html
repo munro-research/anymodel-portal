@@ -7,7 +7,7 @@
         <script src="index.js"></script>
     </head>
 
-    <body>
+    <body onload="init()">
         <h1>AnyModel Portal</h1>
 
         <div id="logged-out" >
@@ -24,6 +24,7 @@
 
         <div id="logged-in">
             <p id="logged-in-msg"></p>
+            <button onclick="logout()">Log Out</button>
             
             <h2>View User</h2>
             <form id="log-in-form" action="javascript:viewUser()">

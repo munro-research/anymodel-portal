@@ -3,10 +3,30 @@
 var credentials = null;
 var privilege = null;
 
+async function init() {
+    let item = localStorage.getItem('credentials');
+    if (item) {
+        let loadedCredentials = JSON.parse(item);
+        await processLogin(loadedCredentials.email, loadedCredentials.password);
+    }
+}
+
+async function logout() {
+    localStorage.removeItem('credentials');
+    window.location = "/"
+}
+
 async function login() {
     let email = document.getElementById("email").value;
     let password = document.getElementById("password").value;
 
+    let error = await processLogin(email, password);
+    if (error) {
+        alert(json.error);
+    }
+}
+
+async function processLogin(email, password) {
     let response = await fetch(`/login`, {
         method: 'POST',
         headers: {
@@ -25,8 +45,13 @@ async function login() {
         document.getElementById("logged-out").style.display = "none";
         document.getElementById("logged-in").style.display = "block";
         document.getElementById("logged-in-msg").innerHTML = `Logged in as ${credentials.email} (${privilege})`;
+
+        localStorage.setItem('credentials', JSON.stringify(credentials));
+
+        return null;
     } else {
-        alert(json.error);
+        localStorage.removeItem('credentials');
+        return json.error;
     }
 }
 
