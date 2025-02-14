@@ -27,21 +27,59 @@
             <button onclick="logout()">Log Out</button>
             
             <h2>View User</h2>
-            <form id="log-in-form" action="javascript:viewUser()">
+            <form action="javascript:viewUser()">
                 <label for="user-email">Email:</label>
-                <input type="user-email" id="user-email" name="user-email" placeholder="name@example.com">
+                <input type="email" id="user-email" name="user-email" placeholder="name@example.com">
                 <br>
                 <button type="submit">Retrieve</button>
             </form>
 
             <p id="user-json"></p>
 
+            <h2>Delete User</h2>
+            <form action="javascript:deleteUser()">
+                <label for="delete-email1">Email:</label>
+                <input type="email" id="delete-email1" name="delete-email1" placeholder="name@example.com">
+                <br>
+                <label for="delete-email2">Repeat Email:</label>
+                <input type="email" id="delete-email2" name="delete-email2" placeholder="name@example.com">
+                <br>
+                <button type="submit">Delete</button>
+            </form>
+
             <h2>Ban User</h2>
-            <form id="log-in-form" action="javascript:banUser()">
+            <form action="javascript:banUser()">
                 <label for="ban-email">Email:</label>
-                <input type="ban-email" id="ban-email" name="ban-email" placeholder="name@example.com">
+                <input type="email" id="ban-email" name="ban-email" placeholder="name@example.com">
                 <br>
                 <button type="submit">Ban</button>
+            </form>
+
+            <h2>Create User</h2>
+            <form action="javascript:createUser()">
+                <label for="new-email">Email:</label>
+                <input type="email" id="new-email" name="new-email" placeholder="name@example.com">
+                <br>
+
+                <label for="new-password">Password:</label>
+                <input type="text" id="new-password" name="new-password" placeholder="password123">
+                <br>
+
+                <label for="plans">Plan:</label>
+
+                <select name="plans" id="plans">
+                  <option value="trial" selected>Trial</option>
+                  <option value="plan1-manual">Plan 1 - Starter (manual renewal)</option>
+                  <option value="plan2-manual">Plan 2 - Plus (manual renewal)</option>
+                  <option value="plan3-manual">Plan 3 - Unlimited (manual renewal)</option>
+                </select> 
+                <br>
+
+                <label for="change-password">Change password on first login?</label>
+                <input type="checkbox" id="change-password" name="change-password" value="change-password">
+                <br>
+
+                <button type="submit">Create</button>
             </form>
         </div>
     </body>
