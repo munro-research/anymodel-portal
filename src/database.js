@@ -1,5 +1,7 @@
 //2025 Munro Research Limited, All rights reserved
 const {MongoClient, ObjectId} = require('mongodb');
+const crypto = require('crypto');
+
 const client = new MongoClient(`${process.env.DATABASE_PROTOCOL}://${process.env.DATABASE_USERNAME}:${process.env.DATABASE_PASSWORD}@${process.env.DATABASE_URL}/${process.env.DATABASE_NAME}`);
 
 async function getUser(query) {
@@ -16,6 +18,23 @@ async function replaceUser(user) {
     await users.replaceOne({_id: user._id}, user);
 }
 
+async function saveNewUser(user) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    //store hashed user id
+    const response = await users.insertOne(user);
+    let md5id = crypto.createHash('md5').update(response.insertedId.toString()).digest('hex').toString();
+    await users.updateOne({_id: response.insertedId}, {$set: {"md5id":md5id}});
+}
+
+async function deleteUser(id) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    await users.deleteOne({_id: id});
+}
+
 module.exports = {
-    getUser, replaceUser
+    getUser, replaceUser, saveNewUser, deleteUser
 }

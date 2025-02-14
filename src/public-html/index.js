@@ -76,6 +76,32 @@ async function viewUser() {
     }
 }
 
+async function deleteUser() {
+    let userEmail = document.getElementById("delete-email1").value;
+    let userEmail2 = document.getElementById("delete-email2").value;
+
+    if (userEmail != userEmail2) {
+        alert("Emails don't match!");
+        return;
+    }
+
+    let response = await fetch(`/delete-user`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, userEmail})
+    });
+
+    if (response.status == 200) {
+        alert(`User '${userEmail}' deleted`);
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
+}
+
 async function banUser() {
     let userEmail = document.getElementById("ban-email").value;
 
@@ -90,6 +116,35 @@ async function banUser() {
 
     if (response.status == 200) {
         alert(`User '${userEmail}' banned`);
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
+}
+
+async function createUser() {
+    let email = document.getElementById("new-email").value;
+    let password = document.getElementById("new-password").value;
+    let plan = document.getElementById("plans").value; 
+    let changePassword = document.getElementById("change-password").checked;
+
+    if (plan.endsWith("-manual")) {
+        plan = plan.replaceAll("-manual", "");
+    } else {
+        //handle setting up stripe
+    }
+
+    let response = await fetch(`/create-user`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword}})
+    });
+
+    if (response.status == 200) {
+        alert(`User '${email}' created`);
     } else {
         let json = await response.json();
         alert(json.error);
