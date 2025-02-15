@@ -113,6 +113,29 @@ app.post("/ban-user", async (req, res) => {
     }
 })
 
+app.post("/unban-user", async (req, res) => {
+    try {
+        const { credentials, userEmail } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            let retrievedUser =  await database.getUser({email: userEmail.toLowerCase()});
+
+            if (retrievedUser) {
+                user.banned = false;
+                await database.replaceUser(user)
+                res.status(200).send();
+            } else throw new Error("User not found");
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
 app.post("/create-user", async (req, res) => {
     try {
         const { credentials, newUser } = req.body;
@@ -143,6 +166,7 @@ app.post("/create-user", async (req, res) => {
                 emailConsent: null, 
                 analyticsConsent: null,
                 credits: Number(anyModelOptions.plans[newUser.plan].credits),
+                paymentService: newUser.paymentService,
             });
 
             res.status(200).send();
