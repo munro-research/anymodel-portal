@@ -3,6 +3,8 @@
         <meta charset="utf-8">
         <title>AnyModel Portal</title>
 
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
         <link rel="stylesheet" href="style.css">
         <script src="index.js"></script>
     </head>
@@ -89,6 +91,21 @@
 
                 <button type="submit">Create</button>
             </form>
+
+            <h2>Weekly Users</h2>
+            <div id="weekly-users-graph">
+                <canvas id="weekly-users-graph-canvas"></canvas>
+            </div>
+
+            <h2>Weekly Queries</h2>
+            <div id="weekly-queries-graph">
+                <canvas id="weekly-queries-graph-canvas"></canvas>
+            </div>
+
+            <h2>Weekly Active Plans</h2>
+            <div id="weekly-plans-graph">
+                <canvas id="weekly-plans-graph-canvas"></canvas>
+            </div>
         </div>
     </body>
 </html>
