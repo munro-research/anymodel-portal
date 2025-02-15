@@ -1,5 +1,7 @@
 //2025 Munro Research Limited, All rights reserved
 
+const PREFIX = "portal"
+
 var credentials = null;
 var privilege = null;
 var metrics = null;
@@ -33,7 +35,7 @@ async function login() {
 }
 
 async function processLogin(email, password) {
-    let response = await fetch(`/login`, {
+    let response = await fetch(`/${PREFIX}/login`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -66,7 +68,7 @@ async function processLogin(email, password) {
 async function viewUser() {
     let userEmail = document.getElementById("user-email").value;
 
-    let response = await fetch(`/view-user`, {
+    let response = await fetch(`/${PREFIX}/view-user`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -93,7 +95,7 @@ async function deleteUser() {
         return;
     }
 
-    let response = await fetch(`/delete-user`, {
+    let response = await fetch(`/${PREFIX}/delete-user`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -113,7 +115,7 @@ async function deleteUser() {
 async function banUser() {
     let userEmail = document.getElementById("ban-email").value;
 
-    let response = await fetch(`/ban-user`, {
+    let response = await fetch(`/${PREFIX}/ban-user`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -133,7 +135,7 @@ async function banUser() {
 async function unbanUser() {
     let userEmail = document.getElementById("unban-email").value;
 
-    let response = await fetch(`/unban-user`, {
+    let response = await fetch(`/${PREFIX}/unban-user`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -167,7 +169,7 @@ async function createUser() {
         //handle setting up stripe
     }
 
-    let response = await fetch(`/create-user`, {
+    let response = await fetch(`/${PREFIX}/create-user`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -185,7 +187,7 @@ async function createUser() {
 }
 
 async function getMetrics() {
-    let response = await fetch(`/get-metrics`, {
+    let response = await fetch(`/${PREFIX}/get-metrics`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
