@@ -178,6 +178,24 @@ app.post("/create-user", async (req, res) => {
     }
 })
 
+app.post("/get-metrics", async (req, res) => {
+    try {
+        const { credentials } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            let metrics = await database.getMetrics();
+            res.status(200).json({metrics});
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
 async function getAnyModelOptions() {
     let response = await fetch(`${process.env.API_URL}/supported-options`);
     return await response.json();

@@ -35,6 +35,13 @@ async function deleteUser(id) {
     await users.deleteOne({_id: id});
 }
 
+async function getMetrics() {
+    await client.connect();
+    const metrics = client.db(process.env.DATABASE_NAME).collection(process.env.METRIC_COLLECTION);
+
+    return await metrics.find({}).toArray();
+}
+
 module.exports = {
-    getUser, replaceUser, saveNewUser, deleteUser
+    getUser, replaceUser, saveNewUser, deleteUser, getMetrics
 }
