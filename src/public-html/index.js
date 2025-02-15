@@ -122,14 +122,39 @@ async function banUser() {
     }
 }
 
+async function unbanUser() {
+    let userEmail = document.getElementById("unban-email").value;
+
+    let response = await fetch(`/unban-user`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, userEmail})
+    });
+
+    if (response.status == 200) {
+        alert(`User '${userEmail}' unbanned`);
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
+}
+
 async function createUser() {
     let email = document.getElementById("new-email").value;
     let password = document.getElementById("new-password").value;
     let plan = document.getElementById("plans").value; 
     let changePassword = document.getElementById("change-password").checked;
+    let paymentService = null;
 
     if (plan.endsWith("-manual")) {
         plan = plan.replaceAll("-manual", "");
+
+        if (plan != "trial") {
+            paymentService = "Manual";
+        }
     } else {
         //handle setting up stripe
     }
@@ -140,7 +165,7 @@ async function createUser() {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword}})
+        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, paymentService}})
     });
 
     if (response.status == 200) {
