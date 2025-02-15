@@ -224,7 +224,6 @@ function weeklyUsers() {
 
     for (; i < metrics.length; i += 7) {
         let item = metrics[i];
-        console.log(item);
 
         labels.push(`w/c ${new Date(item.time).toDateString()}`);
         data1.push(item.active_users_last_7_days)
@@ -273,8 +272,7 @@ function weeklyQueries() {
 
     for (; i < metrics.length; i += 7) {
         let item = metrics[i];
-        console.log(item);
-
+        
         let date = new Date(item.time);
 
         labels.push(`w/c ${date.toDateString()}`);
@@ -324,7 +322,6 @@ function weeklyPlans() {
 
     for (; i < metrics.length; i += 7) {
         let item = metrics[i];
-        console.log(item);
 
         labels.push(`w/c ${new Date(item.time).toDateString()}`);
         data1.push(item.number_of_active_starter_plans)
