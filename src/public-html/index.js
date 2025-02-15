@@ -30,7 +30,7 @@ async function login() {
 
     let error = await processLogin(email, password);
     if (error) {
-        alert(json.error);
+        alert(error);
     }
 }
 
