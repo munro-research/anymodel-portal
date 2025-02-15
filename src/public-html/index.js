@@ -159,6 +159,12 @@ async function createUser() {
     let changePassword = document.getElementById("change-password").checked;
     let paymentService = null;
 
+    let account = document.getElementById("new-account").value;
+    if (account == "") account = null;
+    
+    let privilegeLevel = document.getElementById("new-privilege").value;
+    if (privilegeLevel == "null") privilegeLevel = null;
+
     if (plan.endsWith("-manual")) {
         plan = plan.replaceAll("-manual", "");
 
@@ -175,7 +181,7 @@ async function createUser() {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, paymentService}})
+        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, paymentService, account, privilege: privilegeLevel}})
     });
 
     if (response.status == 200) {
