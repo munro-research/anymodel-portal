@@ -149,6 +149,8 @@ router.post("/create-user", async (req, res) => {
                 analyticsConsent: null,
                 credits: Number(anyModelOptions.plans[newUser.plan].credits),
                 paymentService: newUser.paymentService,
+                privilege: newUser.privilege,
+                account: newUser.account,
             });
 
             res.status(200).send();
