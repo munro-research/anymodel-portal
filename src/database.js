@@ -42,6 +42,13 @@ async function getMetrics() {
     return await metrics.find({}).toArray();
 }
 
+async function getUsersReferredBy(id) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    return await users.find({referredBy: id}).toArray();
+}
+
 module.exports = {
-    getUser, replaceUser, saveNewUser, deleteUser, getMetrics
+    getUser, replaceUser, saveNewUser, deleteUser, getMetrics, getUsersReferredBy
 }
