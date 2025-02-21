@@ -178,6 +178,71 @@ router.post("/get-metrics", async (req, res) => {
     }
 })
 
+router.post("/get-affiliate-status", async (req, res) => {
+    try {
+        const { credentials } = req.body;
+        const { email, password } = credentials;
+
+        let user = await login(email, password);
+
+        const COMMISSIONS = {
+            plan1: 2.25,
+            plan2: 7.25,
+            plan3: 0
+        }
+
+        let activeReferredSubscribers = {
+            plan1: 0,
+            plan2: 0,
+            plan3: 0
+        };
+
+        let accumulatedThisPeriod = {
+            plan1: 0,
+            plan2: 0,
+            plan3: 0
+        };
+
+        let referredUsers = await database.getUsersReferredBy(user._id);
+
+        for (const referredUser of referredUsers) {
+            if (referredUser.subscriptionCreated) {
+                let signUpDate = referredUser.signUpDate;
+                let subscriptionCreated = new Date(referredUser.subscriptionCreated * 1000);
+                let timeElapsedSignUpToSubscribe = Math.floor(Math.abs(signUpDate - subscriptionCreated) / (1000 * 60 * 60 * 24));
+                
+                if (timeElapsedSignUpToSubscribe < REFERRAL_WINDOW) {
+                    let subscriptionStatus = referredUser.subscriptionStatus;
+                    let plan = referredUser.plan;
+
+                    if (subscriptionStatus == "active") {
+                        activeReferredSubscribers[plan]++;
+                    }
+
+                    let lastPayment = referredUser.lastPayment;
+
+                    if (new Date().getMonth() == lastPayment.getMonth()) {
+                        accumulatedThisPeriod[plan]++;
+                    }
+                }
+            }
+        }
+
+        res.status(200).json({
+            totalReferredUsers: referredUsers.length,
+            activeSubscribers: activeReferredSubscribers,
+            accumulatedThisPeriod: accumulatedThisPeriod,
+            commissions: COMMISSIONS,
+        });
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+    
+
+
+});
+
 async function getAnyModelOptions() {
     let response = await fetch(`${process.env.API_URL}/supported-options`);
     return await response.json();
