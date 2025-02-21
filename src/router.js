@@ -185,6 +185,7 @@ router.post("/get-affiliate-status", async (req, res) => {
 
         let user = await login(email, password);
 
+        const REFERRAL_WINDOW = 30;
         const COMMISSIONS = {
             plan1: 2.25,
             plan2: 7.25,
