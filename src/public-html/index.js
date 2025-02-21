@@ -382,5 +382,5 @@ function weeklyPlans() {
 async function affiliates() {
     document.getElementById("landing-page-affiliate-link").innerHTML = `<a href="https://www.anymodel.xyz?referredBy=${id}">https://www.anymodel.xyz?referredBy=${id}</a>`
     document.getElementById("marketers-page-affiliate-link").innerHTML = `<a href="https://www.anymodel.xyz/marketers?referredBy=${id}">https://www.anymodel.xyz/marketers?referredBy=${id}</a>`
-    document.getElementById("signup-affiliate-link").innerHTML = `<a href="https://app.anymodel.xyz?referredBy=${id}">https://app.anymodel.xyz?signup=true&referredBy=${id}</a>`
+    document.getElementById("signup-affiliate-link").innerHTML = `<a href="https://app.anymodel.xyz?signup=true&referredBy=${id}">https://app.anymodel.xyz?signup=true&referredBy=${id}</a>`
 }
