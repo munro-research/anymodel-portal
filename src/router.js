@@ -15,12 +15,9 @@ router.post("/login", async (req, res) => {
     
         let user = await login(email, password);
     
-        if (user.privilege) {
-            res.status(200).json({
-                privilege: user.privilege,
-            });
-        }
-        else throw new Error("User lacks permission");
+        res.status(200).json({
+            privilege: user.privilege,
+        });
     } catch (err) {
         log.error(err);
         res.status(400).json({error: err.message});

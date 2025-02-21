@@ -15,8 +15,20 @@ async function init() {
 }
 
 async function postLogin() {
-    metrics = await getMetrics();
-    drawGraphs();
+    if (privilege == "admin") {
+        metrics = await getMetrics();
+        drawGraphs();
+
+        for (const elem of document.getElementsByClassName("admin")) {
+            elem.style.display = "block";
+        }
+    } else if (privilege == "org-admin") {
+        for (const elem of document.getElementsByClassName("org-admin")) {
+            elem.style.display = "block";
+        }
+    }
+
+    
 }
 
 async function logout() {
@@ -49,6 +61,8 @@ async function processLogin(email, password) {
     if (response.status == 200) {
         credentials = {email, password};
         privilege = json.privilege;
+
+        if (!privilege) privilege = "standard"
 
         document.getElementById("logged-out").style.display = "none";
         document.getElementById("logged-in").style.display = "block";
