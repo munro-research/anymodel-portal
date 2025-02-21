@@ -4,6 +4,7 @@ const PREFIX = "portal"
 
 var credentials = null;
 var privilege = null;
+var id = null;
 var metrics = null;
 
 async function init() {
@@ -28,7 +29,7 @@ async function postLogin() {
         }
     }
 
-    
+    await affiliates();
 }
 
 async function logout() {
@@ -61,6 +62,7 @@ async function processLogin(email, password) {
     if (response.status == 200) {
         credentials = {email, password};
         privilege = json.privilege;
+        id = json.id;
 
         if (!privilege) privilege = "standard"
 
@@ -375,4 +377,10 @@ function weeklyPlans() {
         }
     }
     });
+}
+
+async function affiliates() {
+    document.getElementById("landing-page-affiliate-link").innerHTML = `<a href="https://www.anymodel.xyz?referredBy=${id}">https://www.anymodel.xyz?referredBy=${id}</a>`
+    document.getElementById("landing-page-affiliate-link").innerHTML = `<a href="https://www.anymodel.xyz/marketers?referredBy=${id}">https://www.anymodel.xyz/marketers?referredBy=${id}</a>`
+    document.getElementById("landing-page-affiliate-link").innerHTML = `<a href="https://app.anymodel.xyz?referredBy=${id}">https://app.anymodel.xyz?signup=true&referredBy=${id}</a>`
 }

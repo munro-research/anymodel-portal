@@ -17,6 +17,7 @@ router.post("/login", async (req, res) => {
     
         res.status(200).json({
             privilege: user.privilege,
+            id: user._id,
         });
     } catch (err) {
         log.error(err);
