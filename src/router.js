@@ -145,7 +145,7 @@ router.post("/create-user", async (req, res) => {
                 subscriptionStatus: newUser.plan == "trial" ? "trial" : "active",
                 emailConsent: null, 
                 analyticsConsent: null,
-                credits: Number(anyModelOptions.plans[newUser.plan].credits),
+                credits: anyModelOptions.plans[newUser.plan].credits ? Number(anyModelOptions.plans[newUser.plan].credits) : 0,
                 paymentService: newUser.paymentService,
                 privilege: newUser.privilege,
                 account: newUser.account,
