@@ -34,7 +34,7 @@ async function postLogin() {
 
 async function logout() {
     localStorage.removeItem('credentials');
-    window.location = "/"
+    window.location = "/portal/"
 }
 
 async function login() {
