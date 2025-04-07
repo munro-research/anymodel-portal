@@ -32,10 +32,13 @@ async function postLogin() {
         const plans = document.getElementById("plans");
         plans.innerHTML = `<option value="sub-account" selected>Sub account</option>`
         plans.style.display = "none";
+        document.getElementById("plans-label").style.display = "none";
 
         const org = document.getElementById("new-account");
         org.value = account;
         org.readOnly = true;
+
+        document.getElementById("new-privilege").style.display = "none";
     }
 
     await affiliates();
