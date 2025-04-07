@@ -11,6 +11,13 @@ async function getUser(query) {
     return await users.findOne(query);
 }
 
+async function getUsers(query) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    return await users.findMany(query).toArray();
+}
+
 async function replaceUser(user) {
     await client.connect();
     const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
@@ -50,5 +57,5 @@ async function getUsersReferredBy(id) {
 }
 
 module.exports = {
-    getUser, replaceUser, saveNewUser, deleteUser, getMetrics, getUsersReferredBy
+    getUser, replaceUser, saveNewUser, deleteUser, getMetrics, getUsersReferredBy, getUsers
 }

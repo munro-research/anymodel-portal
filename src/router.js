@@ -17,6 +17,7 @@ router.post("/login", async (req, res) => {
     
         res.status(200).json({
             privilege: user.privilege,
+            account: user.account,
             id: user._id,
         });
     } catch (err) {
@@ -40,6 +41,33 @@ router.post("/view-user", async (req, res) => {
                     user: retrievedUser,
                 });
             } else throw new Error("User not found");
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/view-users", async (req, res) => {
+    try {
+        const { credentials } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            let retrievedUsers =  await database.getUsers();
+
+            res.status(200).json({
+                users: retrievedUsers,
+            });
+        } else if (user.privilege == "org-admin") {
+            let retrievedUsers =  await database.getUsers({account: user.account});
+            
+            res.status(200).json({
+                users: retrievedUsers,
+            });
         }
         else throw new Error("User lacks permission");
     } catch (err) {
@@ -149,6 +177,28 @@ router.post("/create-user", async (req, res) => {
                 paymentService: newUser.paymentService,
                 privilege: newUser.privilege,
                 account: newUser.account,
+            });
+
+            res.status(200).send();
+        }
+        else if (user.privilege == "org-admin") {
+            await database.saveNewUser({
+                username: newUser.email, 
+                email: newUser.email, 
+                auth: {
+                    hashedPassword: await bcrypt.hash(newUser.password, SALT_ROUNDS),
+                    changePassword: newUser.changePassword,
+                },
+                signUpDate: new Date(),
+                renewDate: null,
+                plan: "sub-account",
+                subscriptionStatus: "active",
+                emailConsent: null, 
+                analyticsConsent: null,
+                credits: 0,
+                paymentService: newUser.paymentService,
+                privilege: null,
+                account: user.account,
             });
 
             res.status(200).send();

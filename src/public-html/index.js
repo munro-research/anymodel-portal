@@ -4,6 +4,7 @@ const PREFIX = "portal"
 
 var credentials = null;
 var privilege = null;
+let account = null;
 var id = null;
 var metrics = null;
 
@@ -27,6 +28,14 @@ async function postLogin() {
         for (const elem of document.getElementsByClassName("org-admin")) {
             elem.style.display = "block";
         }
+
+        const plans = document.getElementById("plans");
+        plans.innerHTML = `<option value="sub-account" selected>Sub account</option>`
+        plans.style.display = "none";
+
+        const org = document.getElementById("new-account");
+        org.value = account;
+        org.readOnly = true;
     }
 
     await affiliates();
@@ -62,6 +71,7 @@ async function processLogin(email, password) {
     if (response.status == 200) {
         credentials = {email, password};
         privilege = json.privilege;
+        account = json.account;
         id = json.id;
 
         if (!privilege) privilege = "standard"
