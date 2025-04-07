@@ -1,3 +1,7 @@
 #logged-in, .admin, .org-admin {
     display:none;
 }
+
+#affiliates {
+    display:none;
+}
