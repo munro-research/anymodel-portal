@@ -240,7 +240,7 @@ router.post("/create-account", async (req, res) => {
                 signUpDate: new Date(),
                 subscriptionStatus: "active",
                 renewDate: renewDate.getTime() / 1000,
-                paymentService: "manual",
+                paymentService: "Manual",
             }
 
             await database.saveNewAccount(account);
@@ -318,7 +318,7 @@ router.post("/generate-invoice", async (req, res) => {
                 let user = await database.getUser({email: accountName});
 
                 if (!user) throw new Error("User not found");
-                if (user.paymentService != "manual") throw new Error("Manual billing is not enabled for this user.");
+                if (user.paymentService != "Manual") throw new Error("Manual billing is not enabled for this user.");
 
                 creditsConsumed = user.credits;
                 user.credits = 0;
@@ -332,7 +332,7 @@ router.post("/generate-invoice", async (req, res) => {
                 let account = await database.getAccount(accountName);
 
                 if (!account) throw new Error("Account not found");
-                if (account.paymentService != "manual") throw new Error("Manual billing is not enabled for this account.");
+                if (account.paymentService != "Manual") throw new Error("Manual billing is not enabled for this account.");
 
                 let users = await database.getUsers({account: account.name});
                 for (const user of users) {
