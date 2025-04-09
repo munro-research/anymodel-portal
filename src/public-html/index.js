@@ -19,26 +19,34 @@ async function init() {
 async function postLogin() {
     if (privilege == "admin") {
         metrics = await getMetrics();
-        drawGraphs();
+
+        try{
+            drawGraphs();
+        } catch(err) {
+            console.log(err);
+        }
+        
 
         for (const elem of document.getElementsByClassName("admin")) {
             elem.style.display = "block";
         }
+
+        document.getElementById("new-account").value = account ? account : "";
     } else if (privilege == "org-admin") {
         for (const elem of document.getElementsByClassName("org-admin")) {
             elem.style.display = "block";
         }
 
-        const plans = document.getElementById("plans");
-        plans.innerHTML = `<option value="sub-account" selected>Sub account</option>`
-        plans.style.display = "none";
-        document.getElementById("plans-label").style.display = "none";
+        document.getElementById("plans").innerHTML = `<option value="sub-account" selected>Sub account</option>`
+        document.getElementById("plan-selection").style.display = "none";
 
         const org = document.getElementById("new-account");
-        org.value = account;
         org.readOnly = true;
+        org.value = account;
 
         document.getElementById("new-privilege").style.display = "none";
+
+        await billingInfo();
     }
 
     await affiliates();
@@ -221,6 +229,26 @@ async function createUser() {
     }
 }
 
+async function createAccount() {
+    let name = document.getElementById("new-account-name").value;
+
+    let response = await fetch(`/${PREFIX}/create-account`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, newAccount: {name}})
+    });
+
+    if (response.status == 200) {
+        alert(`Account '${name}' created`);
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
+}
+
 async function getMetrics() {
     let response = await fetch(`/${PREFIX}/get-metrics`, {
         method: 'POST',
@@ -233,163 +261,6 @@ async function getMetrics() {
 
     let json = await response.json();
     return json.metrics;
-}
-
-function drawGraphs() {
-    weeklyUsers();
-    weeklyQueries();
-    weeklyPlans();
-}
-
-function isMonday(time) {
-    let date = new Date(time);
-    return date.getDay() == 1;
-}
-
-function weeklyUsers() {
-
-    const ctx = document.getElementById('weekly-users-graph-canvas');
-
-    let labels = [];
-    let data1 = [];
-    let data2 = [];
-
-    let i = 0;
-    while(!isMonday(metrics[i].time)) {
-        i++;
-    }
-
-    for (; i < metrics.length; i += 7) {
-        let item = metrics[i];
-
-        labels.push(`w/c ${new Date(item.time).toDateString()}`);
-        data1.push(item.active_users_last_7_days)
-        data2.push(item.sign_ups_last_7_days)
-    }
-
-    new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: '# of active users',
-                data: data1,
-                borderWidth: 1
-            },
-            {
-                label: '# of sign ups',
-                data: data2,
-                borderWidth: 1
-            }
-        ]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-    });
-}
-
-function weeklyQueries() {
-
-    const ctx = document.getElementById('weekly-queries-graph-canvas');
-
-    let labels = [];
-    let data1 = [];
-    let data2 = [];
-
-    let i = 0;
-    while(!isMonday(metrics[i].time)) {
-        i++;
-    }
-
-    for (; i < metrics.length; i += 7) {
-        let item = metrics[i];
-        
-        let date = new Date(item.time);
-
-        labels.push(`w/c ${date.toDateString()}`);
-        data1.push(item.text_queries_last_7_days)
-        data2.push(item.image_queries_last_7_days)
-    }
-
-    new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: '# of text queries',
-                data: data1,
-                borderWidth: 1
-            },
-            {
-                label: '# of image queries',
-                data: data2,
-                borderWidth: 1
-            }
-        ]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-    });
-}
-
-function weeklyPlans() {
-
-    const ctx = document.getElementById('weekly-plans-graph-canvas');
-
-    let labels = [];
-    let data1 = [];
-    let data2 = [];
-
-    let i = 0;
-    while(!isMonday(metrics[i].time)) {
-        i++;
-    }
-
-    for (; i < metrics.length; i += 7) {
-        let item = metrics[i];
-
-        labels.push(`w/c ${new Date(item.time).toDateString()}`);
-        data1.push(item.number_of_active_starter_plans)
-        data2.push(item.number_of_active_plus_plans)
-    }
-
-    new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: '# of starter plans',
-                data: data1,
-                borderWidth: 1
-            },
-            {
-                label: '# of plus plans',
-                data: data2,
-                borderWidth: 1
-            }
-        ]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-    });
 }
 
 async function affiliates() {
@@ -415,4 +286,36 @@ async function affiliates() {
     document.getElementById("total-referred-plan3-users").innerHTML = json.activeSubscribers.plan3;
     document.getElementById("guaranteed-commission").innerHTML = (json.accumulatedThisPeriod.plan1 * json.commissions.plan1) + (json.accumulatedThisPeriod.plan2 * json.commissions.plan2) + (json.accumulatedThisPeriod.plan3 * json.commissions.plan3);;
     document.getElementById("projected-commission").innerHTML = (json.activeSubscribers.plan1 * json.commissions.plan1) + (json.activeSubscribers.plan2 * json.commissions.plan2) + (json.activeSubscribers.plan3 * json.commissions.plan3);
+}
+
+async function billingInfo() {
+    let response = await fetch(`/${PREFIX}/billing-info`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials})
+    });
+
+    let info = await response.json();
+
+    document.getElementById("credit-spend").innerHTML = info.creditSpend;
+    document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toLocaleString()
+}
+
+async function generateInvoice() {
+    let account = document.getElementById("invoice-account").value;
+
+    let response = await fetch(`/${PREFIX}/generate-invoice`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, account})
+    });
+
+    let result = await response.json();
+    console.log(result);
 }

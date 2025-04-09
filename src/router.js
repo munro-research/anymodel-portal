@@ -49,21 +49,24 @@ router.post("/view-user", async (req, res) => {
     }
 })
 
-router.post("/view-users", async (req, res) => {
+router.post("/get-users", async (req, res) => {
     try {
         const { credentials } = req.body;
         const { email, password } = credentials;
     
         let user = await login(email, password);
+
+        let max = 10;
+        if (req.body.max) max = req.body.max;
     
         if (user.privilege == "admin") {
-            let retrievedUsers =  await database.getUsers();
+            let retrievedUsers =  await database.getUsers({}, max);
 
             res.status(200).json({
                 users: retrievedUsers,
             });
         } else if (user.privilege == "org-admin") {
-            let retrievedUsers =  await database.getUsers({account: user.account});
+            let retrievedUsers =  await database.getUsers({account: user.account}, max);
             
             res.status(200).json({
                 users: retrievedUsers,
@@ -157,10 +160,7 @@ router.post("/create-user", async (req, res) => {
             let findByEmail = await database.getUser({email: newUser.email});
             if (findByEmail) throw new Error("Email already used");
 
-            let renewDate = new Date();
-            renewDate.setMonth(renewDate.getMonth() + 1);
-
-            await database.saveNewUser({
+            let pendingUser = {
                 username: newUser.email, 
                 email: newUser.email, 
                 auth: {
@@ -168,16 +168,31 @@ router.post("/create-user", async (req, res) => {
                     changePassword: newUser.changePassword,
                 },
                 signUpDate: new Date(),
-                renewDate: newUser.plan == "trial" ? null : renewDate.getTime() / 1000,
-                plan: newUser.plan,
-                subscriptionStatus: newUser.plan == "trial" ? "trial" : "active",
                 emailConsent: null, 
                 analyticsConsent: null,
-                credits: anyModelOptions.plans[newUser.plan].credits ? Number(anyModelOptions.plans[newUser.plan].credits) : 0,
-                paymentService: newUser.paymentService,
                 privilege: newUser.privilege,
-                account: newUser.account,
-            });
+            };
+
+            if (newUser.account) {
+                let account = await database.getAccount(newUser.account);
+
+                if (account) {
+                    pendingUser.account = newUser.account;
+                } else {
+                    throw new Error("Account not found!");
+                }
+            } else {
+                let renewDate = new Date();
+                renewDate.setMonth(renewDate.getMonth() + 1);
+
+                pendingUser.plan = newUser.plan;
+                pendingUser.credits = anyModelOptions.plans[newUser.plan].credits ? Number(anyModelOptions.plans[newUser.plan].credits) : 0;
+                pendingUser.subscriptionStatus = newUser.plan == "trial" ? "trial" : "active";
+                pendingUser.renewDate = newUser.plan == "trial" ? null : renewDate.getTime() / 1000;
+                pendingUser.paymentService = newUser.paymentService;
+            }
+
+            await database.saveNewUser(pendingUser);
 
             res.status(200).send();
         }
@@ -190,18 +205,69 @@ router.post("/create-user", async (req, res) => {
                     changePassword: newUser.changePassword,
                 },
                 signUpDate: new Date(),
-                renewDate: null,
-                plan: "sub-account",
-                subscriptionStatus: "active",
-                emailConsent: null, 
-                analyticsConsent: null,
+                emailConsent: false, 
+                analyticsConsent: false,
                 credits: 0,
-                paymentService: newUser.paymentService,
                 privilege: null,
                 account: user.account,
             });
 
             res.status(200).send();
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/create-account", async (req, res) => {
+    try {
+        const { credentials, newAccount } = req.body;
+        const { email, password } = credentials;
+
+        let user = await login(email, password);
+
+        if (user.privilege == "admin") {
+            let existingAccount = await database.getAccount(newAccount.name);
+            if(existingAccount) throw new Error("Account with this name already exists");
+
+            let renewDate = new Date();
+            renewDate.setMonth(renewDate.getMonth() + 1);
+
+            let account = {
+                name: newAccount.name,
+                signUpDate: new Date(),
+                subscriptionStatus: "active",
+                renewDate: renewDate.getTime() / 1000,
+                paymentService: "manual",
+            }
+
+            await database.saveNewAccount(account);
+
+            res.status(200).send();
+        } else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/billing-info", async (req, res) => {
+    try {
+        const { credentials } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "org-admin") {
+            let account =  await database.getAccount(user.account);
+            let creditSpend = await database.calculateAccountCreditSpend(user.account);
+            
+            res.status(400).json({
+                renewDate: account.renewDate,
+                creditSpend: creditSpend,
+            });
         }
         else throw new Error("User lacks permission");
     } catch (err) {
@@ -220,6 +286,79 @@ router.post("/get-metrics", async (req, res) => {
         if (user.privilege == "admin") {
             let metrics = await database.getMetrics();
             res.status(200).json({metrics});
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/generate-invoice", async (req, res) => {
+    try {
+        const { credentials } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            const accountName = req.body.account;
+
+            let anyModelOptions = await getAnyModelOptions();
+            let renewDate = new Date();
+            renewDate.setMonth(renewDate.getMonth() + 1);
+
+            let creditsConsumed = 0;
+            let seats = 0;
+            let minSpendUSD = 0;
+            let minSpendPerSeatUSD = 0;
+
+            if (accountName.includes("@")) {
+                //user
+                let user = await database.getUser({email: accountName});
+
+                if (!user) throw new Error("User not found");
+                if (user.paymentService != "manual") throw new Error("Manual billing is not enabled for this user.");
+
+                creditsConsumed = user.credits;
+                user.credits = 0;
+                user.renewDate = renewDate.getTime() / 1000;
+
+                if (user.minSpendUSD) minSpendUSD = user.minSpendUSD;
+
+                await database.replaceUser(user);
+            } else {
+                //account
+                let account = await database.getAccount(accountName);
+
+                if (!account) throw new Error("Account not found");
+                if (account.paymentService != "manual") throw new Error("Manual billing is not enabled for this account.");
+
+                let users = await database.getUsers({account: account.name});
+                for (const user of users) {
+                    seats++;
+                    creditsConsumed += user.credits;
+                    user.credits = 0;
+                    await database.replaceUser(user);
+                }
+
+                account.renewDate = renewDate.getTime() / 1000;
+
+                if (account.minSpendUSD) minSpendUSD = account.minSpendUSD;
+                if (account.minSpendPerSeatUSD) {
+                    minSpendPerSeatUSD = account.minSpendPerSeatUSD;
+                    minSpendUSD = minSpendPerSeatUSD * seats;
+                }
+
+                await database.replaceAccount(account);
+            }
+
+            let spendUSD = creditsConsumed > 0 ?
+                Math.ceil((creditsConsumed / anyModelOptions.plans.plan3.creditsPerDollar) * 100) / 100 : 0;
+
+            let subtotalUSD = Math.max(spendUSD, minSpendUSD);
+
+            res.status(200).json({creditsConsumed, spendUSD, seats, minSpendUSD, minSpendPerSeatUSD, subtotalUSD});
         }
         else throw new Error("User lacks permission");
     } catch (err) {
@@ -289,9 +428,6 @@ router.post("/get-affiliate-status", async (req, res) => {
         log.error(err);
         res.status(400).json({error: err.message});
     }
-    
-
-
 });
 
 async function getAnyModelOptions() {
