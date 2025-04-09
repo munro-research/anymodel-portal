@@ -45,7 +45,8 @@ async function postLogin() {
         org.value = account;
 
         document.getElementById("new-privilege").style.display = "none";
-
+        document.getElementById("new-user-min-spend").style.display = "none";
+        
         await billingInfo();
     }
 
@@ -195,6 +196,7 @@ async function createUser() {
     let plan = document.getElementById("plans").value; 
     let changePassword = document.getElementById("change-password").checked;
     let paymentService = null;
+    let minSpendUSD = document.getElementById("min-spend").valueAsNumber;
 
     let account = document.getElementById("new-account").value;
     if (account == "") account = null;
@@ -218,7 +220,7 @@ async function createUser() {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, paymentService, account, privilege: privilegeLevel}})
+        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, paymentService, account, privilege: privilegeLevel, minSpendUSD}})
     });
 
     if (response.status == 200) {
@@ -231,6 +233,12 @@ async function createUser() {
 
 async function createAccount() {
     let name = document.getElementById("new-account-name").value;
+    let minSpend = document.getElementById("monthly-min-spend").valueAsNumber;
+
+    let newAccount = {name};
+
+    if (document.getElementById('total-min-spend').checked) newAccount.minSpendUSD = minSpend;
+    if (document.getElementById('per-seat-min-spend').checked) newAccount.minSpendPerSeatUSD = minSpend;
 
     let response = await fetch(`/${PREFIX}/create-account`, {
         method: 'POST',
@@ -238,7 +246,7 @@ async function createAccount() {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, newAccount: {name}})
+        body: JSON.stringify({credentials, newAccount})
     });
 
     if (response.status == 200) {

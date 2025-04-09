@@ -190,6 +190,7 @@ router.post("/create-user", async (req, res) => {
                 pendingUser.subscriptionStatus = newUser.plan == "trial" ? "trial" : "active";
                 pendingUser.renewDate = newUser.plan == "trial" ? null : renewDate.getTime() / 1000;
                 pendingUser.paymentService = newUser.paymentService;
+                pendingUser.minSpendUSD = newUser.minSpendUSD;
             }
 
             await database.saveNewUser(pendingUser);
@@ -239,9 +240,15 @@ router.post("/create-account", async (req, res) => {
                 name: newAccount.name,
                 signUpDate: new Date(),
                 subscriptionStatus: "active",
+                plan: "plan3",
                 renewDate: renewDate.getTime() / 1000,
                 paymentService: "Manual",
             }
+
+            console.log(newAccount);
+
+            if (newAccount.minSpendUSD) account.minSpendUSD = newAccount.minSpendUSD;
+            if (newAccount.minSpendPerSeatUSD) account.minSpendPerSeatUSD = newAccount.minSpendPerSeatUSD;
 
             await database.saveNewAccount(account);
 
@@ -319,6 +326,7 @@ router.post("/generate-invoice", async (req, res) => {
 
                 if (!user) throw new Error("User not found");
                 if (user.paymentService != "Manual") throw new Error("Manual billing is not enabled for this user.");
+                if (user.plan != "plan3") throw new Error("User plan does not support invoices.");
 
                 creditsConsumed = user.credits;
                 user.credits = 0;
@@ -333,6 +341,7 @@ router.post("/generate-invoice", async (req, res) => {
 
                 if (!account) throw new Error("Account not found");
                 if (account.paymentService != "Manual") throw new Error("Manual billing is not enabled for this account.");
+                if (account.plan != "plan3") throw new Error("Account plan does not support invoices.");
 
                 let users = await database.getUsers({account: account.name});
                 for (const user of users) {
