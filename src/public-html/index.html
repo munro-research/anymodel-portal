@@ -7,6 +7,7 @@
 
         <link rel="stylesheet" href="style.css">
         <script src="index.js"></script>
+        <script src="graphs.js"></script>
     </head>
 
     <body onload="init()">
@@ -47,8 +48,14 @@
                 <p><strong>Projected* commission this month:</strong> $<span id="projected-commission"></span></p>
                 <p>*Assuming no new subscribers or cancellations during the rest of the month</p>
             </div>
+
+            <div id="billing" class="org-admin">
+                <h2>Billing</h2>
+                <p>Credit Spend: <span id="credit-spend"></span></p>
+                <p>Renew Date: <span id="renew-date"></span></p>
+            </div>
             
-            <div id="view-user" class="admin org-admin">
+            <!-- <div id="view-user" class="admin org-admin">
                 <h2>View User</h2>
                 <form action="javascript:viewUser()">
                     <label for="user-email">Email:</label>
@@ -94,6 +101,27 @@
                     <br>
                     <button type="submit">Unban</button>
                 </form>
+            </div> -->
+
+            <div id="generate-invoice">
+                <h2>Generate Invoice</h2>
+
+                <form action="javascript:generateInvoice()">
+                    <label for="invoice-account">Email/Account Name:</label>
+                    <input type="text" id="invoice-account" name="invoice-account" placeholder="Example Ltd">
+
+                    <button type="submit">Create</button>
+                </form>
+            </div>
+
+            <div id="create-account" class="admin">
+                <h2>Create Account</h2>
+                <form action="javascript:createAccount()">
+                    <label for="new-email">Name:</label>
+                    <input type="text" id="new-account-name" name="new-account-name" placeholder="Example Ltd">
+
+                    <button type="submit">Create</button>
+                </form>
             </div>
             
 
@@ -109,14 +137,17 @@
                     <br>
 
                     <label id="plans-label" for="plans">Plan:</label>
-
-                    <select name="plans" id="plans">
-                        <option value="trial" selected>Trial</option>
-                        <option value="plan1-manual">Plan 1 - Starter (manual renewal)</option>
-                        <option value="plan2-manual">Plan 2 - Plus (manual renewal)</option>
-                        <option value="plan3-manual">Plan 3 - Unlimited (manual renewal)</option>
-                    </select> 
-                    <br>
+                    
+                    <div id="plan-selection">
+                        <select name="plans" id="plans">
+                            <option value="trial" selected>Trial</option>
+                            <option value="plan1-manual">Plan 1 - Starter (manual renewal)</option>
+                            <option value="plan2-manual">Plan 2 - Plus (manual renewal)</option>
+                            <option value="plan3-manual">Plan 3 - Unlimited (manual renewal)</option>
+                        </select> 
+                        <strong>OR</strong>
+                        <br>
+                    </div>
 
                     <label for="new-account">Organisation (blank for none):</label>
                     <input type="text" id="new-account" name="new-account" placeholder="">
