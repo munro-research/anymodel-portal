@@ -1,33 +1,6 @@
 //2025 Munro Research Limited, All rights reserved
 
-const PREFIX = "portal"
-const LOG_OUT_URL = "/portal/";
-
-var credentials = null;
-var privilege = null;
-let account = null;
-var id = null;
-var metrics = null;
-
-async function init() {
-    let item = localStorage.getItem('credentials');
-    if (item) {
-        let loadedCredentials = JSON.parse(item);
-        await processLogin(loadedCredentials.email, loadedCredentials.password);
-    }
-}
-
-async function postLogin() {
-    if (window.location.toString().includes("graphs.html")) {
-        initGraphs();
-        return;
-    } 
-
-    if (window.location.toString().includes("affiliate.html")) {
-        initAffiliates();
-        return;
-    } 
-
+async function initIndex() {
     if (privilege == "admin") {
         for (const elem of document.getElementsByClassName("admin")) {
             elem.style.display = "block";
@@ -55,106 +28,27 @@ async function postLogin() {
     }
 }
 
-async function logout() {
-    localStorage.removeItem('credentials');
-    window.location = LOG_OUT_URL;
-}
+async function deleteUser(userEmail) {
+    if (confirm(`Are you sure you want to PERMANENTLY delete user ${userEmail}?`) && confirm(`FINAL WARNING: This will DELETE ${userEmail} - are you sure?`)) {
+        let response = await fetch(`/${PREFIX}/delete-user`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({credentials, userEmail})
+        });
 
-async function login() {
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
-
-    let error = await processLogin(email, password);
-    if (error) {
-        alert(error);
+        if (response.status == 200) {
+            alert(`User '${userEmail}' deleted`);
+        } else {
+            let json = await response.json();
+            alert(json.error);
+        }
     }
 }
 
-async function processLogin(email, password) {
-    let response = await fetch(`/${PREFIX}/login`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials: {email, password}})
-    });
-
-    let json = await response.json();
-
-    if (response.status == 200) {
-        credentials = {email, password};
-        privilege = json.privilege;
-        account = json.account;
-        id = json.id;
-
-        if (!privilege) privilege = "standard"
-
-        document.getElementById("logged-out").style.display = "none";
-        document.getElementById("logged-in").style.display = "block";
-        document.getElementById("logged-in-msg").innerHTML = `Logged in as ${credentials.email} (${privilege})`;
-
-        localStorage.setItem('credentials', JSON.stringify(credentials));
-
-        postLogin();
-
-        return null;
-    } else {
-        localStorage.removeItem('credentials');
-        return json.error;
-    }
-}
-
-async function viewUser() {
-    let userEmail = document.getElementById("user-email").value;
-
-    let response = await fetch(`/${PREFIX}/view-user`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials, userEmail})
-    });
-
-    let json = await response.json();
-
-    if (response.status == 200) {
-        document.getElementById("user-json").innerHTML = JSON.stringify(json.user);
-    } else {
-        alert(json.error);
-    }
-}
-
-async function deleteUser() {
-    let userEmail = document.getElementById("delete-email1").value;
-    let userEmail2 = document.getElementById("delete-email2").value;
-
-    if (userEmail != userEmail2) {
-        alert("Emails don't match!");
-        return;
-    }
-
-    let response = await fetch(`/${PREFIX}/delete-user`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials, userEmail})
-    });
-
-    if (response.status == 200) {
-        alert(`User '${userEmail}' deleted`);
-    } else {
-        let json = await response.json();
-        alert(json.error);
-    }
-}
-
-async function banUser() {
-    let userEmail = document.getElementById("ban-email").value;
-
+async function banUser(userEmail) {
     let response = await fetch(`/${PREFIX}/ban-user`, {
         method: 'POST',
         headers: {
@@ -172,9 +66,7 @@ async function banUser() {
     }
 }
 
-async function unbanUser() {
-    let userEmail = document.getElementById("unban-email").value;
-
+async function unbanUser(userEmail) {
     let response = await fetch(`/${PREFIX}/unban-user`, {
         method: 'POST',
         headers: {
@@ -284,9 +176,6 @@ async function generateInvoice(account) {
     populateAccounts();
 
     alert(`Invoice '${result.invoiceId}' ($${result.subtotalUSD}) created and emailed to ${result.billingEmail}`);
-
-    //TODO: show modal with link to invoice
-    // window.open(`https://dashboard.stripe.com/invoices/${result.invoiceId}`)
 }
 
 async function populateAccounts() {

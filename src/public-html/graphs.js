@@ -1,3 +1,7 @@
+//2025 Munro Research Limited, All rights reserved
+
+var metrics = null;
+
 async function initGraphs() {
     if (privilege == "admin") {
         try {
