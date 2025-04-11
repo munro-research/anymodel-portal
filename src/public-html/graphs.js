@@ -1,3 +1,30 @@
+async function initGraphs() {
+    if (privilege == "admin") {
+        try {
+            metrics = await getMetrics();
+            drawGraphs();
+        } catch(err) {
+            console.log(err);
+        }
+    } else {
+        window.location = LOG_OUT_URL;
+    }
+}
+
+async function getMetrics() {
+    let response = await fetch(`/${PREFIX}/get-metrics`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials})
+    });
+
+    let json = await response.json();
+    return json.metrics;
+}
+
 function drawGraphs() {
     weeklyUsers();
     weeklyQueries();
