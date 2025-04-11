@@ -107,7 +107,7 @@
                 <h2>Generate Invoice</h2>
 
                 <form action="javascript:generateInvoice()">
-                    <label for="invoice-account">Email/Account Name:</label>
+                    <label for="invoice-account">Account Name:</label>
                     <input type="text" id="invoice-account" name="invoice-account" placeholder="Example Ltd">
 
                     <button type="submit">Create</button>
@@ -121,6 +121,10 @@
                     <input type="text" id="new-account-name" name="new-account-name" placeholder="Example Ltd">
                     <br>
 
+                    <label for="billing">Billing Email:</label>
+                    <input type="email" id="billing-email" name="billing-email" placeholder="name@example.com">
+                    <br>
+
                     <label for="monthly-min-spend">Monthly Minimum Spend:</label>
                     <input type="number" id="monthly-min-spend" name="monthly-min-spend" value="0">
 
@@ -128,6 +132,13 @@
                     <label for="html">Total</label>
                     <input type="radio" id="per-seat-min-spend" name="min-spend-mode" value="per-seat">
                     <label for="css">Per Seat</label>
+                    <br>
+
+                    <label for="account-plans">Plan:</label>
+                    <select name="account-plans" id="account-plans">
+                        <option value="plan3-stripe-invoice">Plan 3 - Unlimited (stripe invoice)</option>
+                        <option value="plan3-manual">Plan 3 - Unlimited (manual)</option>
+                    </select> 
                     <br>
 
                     <button type="submit">Create</button>
@@ -151,9 +162,9 @@
                     <div id="plan-selection">
                         <select name="plans" id="plans">
                             <option value="trial" selected>Trial</option>
-                            <option value="plan1-manual">Plan 1 - Starter (manual renewal)</option>
-                            <option value="plan2-manual">Plan 2 - Plus (manual renewal)</option>
-                            <option value="plan3-manual">Plan 3 - Unlimited (manual renewal)</option>
+                            <option value="plan1-extended-trial">Plan 1 - Starter (extended trial)</option>
+                            <option value="plan2-extended-trial">Plan 2 - Plus (extended trial)</option>
+                            <option value="plan3-manual">Plan 3 - Unlimited (manual)</option>
                         </select> 
                         <strong>OR</strong>
                         <br>

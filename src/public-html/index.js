@@ -195,7 +195,6 @@ async function createUser() {
     let password = document.getElementById("new-password").value;
     let plan = document.getElementById("plans").value; 
     let changePassword = document.getElementById("change-password").checked;
-    let paymentService = null;
     let minSpendUSD = document.getElementById("min-spend").valueAsNumber;
 
     let account = document.getElementById("new-account").value;
@@ -204,15 +203,6 @@ async function createUser() {
     let privilegeLevel = document.getElementById("new-privilege").value;
     if (privilegeLevel == "null") privilegeLevel = null;
 
-    if (plan.endsWith("-manual")) {
-        plan = plan.replaceAll("-manual", "");
-
-        if (plan != "trial") {
-            paymentService = "Manual";
-        }
-    } else {
-        //handle setting up stripe
-    }
 
     let response = await fetch(`/${PREFIX}/create-user`, {
         method: 'POST',
@@ -220,7 +210,7 @@ async function createUser() {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, paymentService, account, privilege: privilegeLevel, minSpendUSD}})
+        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, account, privilege: privilegeLevel, minSpendUSD}})
     });
 
     if (response.status == 200) {
@@ -234,8 +224,10 @@ async function createUser() {
 async function createAccount() {
     let name = document.getElementById("new-account-name").value;
     let minSpend = document.getElementById("monthly-min-spend").valueAsNumber;
+    let plan = document.getElementById("account-plans").value; 
+    let billingEmail = document.getElementById("billing-email").value;
 
-    let newAccount = {name};
+    let newAccount = {name, plan, billingEmail};
 
     if (document.getElementById('total-min-spend').checked) newAccount.minSpendUSD = minSpend;
     if (document.getElementById('per-seat-min-spend').checked) newAccount.minSpendPerSeatUSD = minSpend;
@@ -326,4 +318,5 @@ async function generateInvoice() {
 
     let result = await response.json();
     console.log(result);
+    // window.open(`https://dashboard.stripe.com/invoices/${result.invoiceId}`)
 }
