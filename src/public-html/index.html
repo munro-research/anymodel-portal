@@ -5,6 +5,9 @@
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+        <!-- Font awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
+
         <link rel="stylesheet" href="style.css">
         <script src="index.js"></script>
         <script src="graphs.js"></script>
@@ -103,17 +106,6 @@
                 </form>
             </div> -->
 
-            <div id="generate-invoice" class="admin">
-                <h2>Generate Invoice</h2>
-
-                <form action="javascript:generateInvoice()">
-                    <label for="invoice-account">Account Name:</label>
-                    <input type="text" id="invoice-account" name="invoice-account" placeholder="Example Ltd">
-
-                    <button type="submit">Create</button>
-                </form>
-            </div>
-
             <div id="create-account" class="admin">
                 <h2>Create Account</h2>
                 <form action="javascript:createAccount()">
@@ -145,6 +137,33 @@
                 </form>
             </div>
             
+            <div id="accounts">
+                <h2>Accounts</h2>
+                <input type="text" id="account-search" onkeyup="searchAccounts()" placeholder="Search by names or email">
+                <table id="account-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Min Spend</th>
+                            <th>Min Spend / Seat</th>
+                            <!-- <th>Seats</th> -->
+                            <!-- <th>Balance</th> -->
+                            <th>Renewal</th>
+                            <th>Stripe</th>
+                            <th>Previous Invoice</th>
+                            <th>Latest Invoice</th>
+                            <th><!-- cancel/activate --></th>
+                            <th><!-- Invoice --></th>
+                            <th><!-- Delete --></th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="account-table-body">
+                    </tbody>
+                </table>
+            </div>
 
             <div id="create-user" class="admin org-admin">
                 <h2>Create User</h2>

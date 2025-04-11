@@ -202,8 +202,6 @@ router.post("/create-user", async (req, res) => {
                     paymentService = "Extended Trial";
                 }
 
-                console.log(plan);
-
                 pendingUser.plan = plan;
                 pendingUser.credits = anyModelOptions.plans[plan].credits ? Number(anyModelOptions.plans[plan].credits) : 0;
                 pendingUser.subscriptionStatus = plan == "trial" ? "trial" : "active";
@@ -287,8 +285,6 @@ router.post("/create-account", async (req, res) => {
                 invoices: [],
             }
 
-            console.log(newAccount);
-
             if (newAccount.minSpendUSD) account.minSpendUSD = newAccount.minSpendUSD;
             if (newAccount.minSpendPerSeatUSD) account.minSpendPerSeatUSD = newAccount.minSpendPerSeatUSD;
 
@@ -296,6 +292,89 @@ router.post("/create-account", async (req, res) => {
 
             res.status(200).send();
         } else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/get-accounts", async (req, res) => {
+    try {
+        const { credentials } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+
+        let max = 10;
+        if (req.body.max) max = req.body.max;
+    
+        if (user.privilege == "admin") {
+            let retrievedAccounts =  await database.getAccounts({}, max);
+
+            res.status(200).json({
+                accounts: retrievedAccounts,
+            });
+        } else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/cancel-account", async (req, res) => {
+    try {
+        const { credentials, accountName } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            let account = await database.getAccount(accountName);
+            account.subscriptionStatus = "canceled";
+
+            await database.replaceAccount(account);
+            res.status(200).send();
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/activate-account", async (req, res) => {
+    try {
+        const { credentials, accountName } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            let account = await database.getAccount(accountName);
+            account.subscriptionStatus = "active";
+
+            await database.replaceAccount(account);
+            res.status(200).send();
+        }
+        else throw new Error("User lacks permission");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/delete-account", async (req, res) => {
+    try {
+        const { credentials, accountName } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+    
+        if (user.privilege == "admin") {
+            await database.deleteAccountAndUsers(accountName);
+            res.status(200).send();
+        }
+        else throw new Error("User lacks permission");
     } catch (err) {
         log.error(err);
         res.status(400).json({error: err.message});
@@ -312,8 +391,6 @@ router.post("/billing-info", async (req, res) => {
         if (user.privilege == "org-admin") {
             let account =  await database.getAccount(user.account);
             let creditSpend = await database.calculateAccountCreditSpend(user.account);
-
-            console.log(creditSpend);
 
             res.status(200).json({
                 renewDate: account.renewDate,
@@ -431,7 +508,7 @@ router.post("/generate-invoice", async (req, res) => {
 
             await database.replaceAccount(account);
 
-            res.status(200).json({creditsConsumed, spendUSD, seats, minSpendUSD, minSpendPerSeatUSD, subtotalUSD, invoiceId: invoice.id});
+            res.status(200).json({creditsConsumed, spendUSD, seats, minSpendUSD, minSpendPerSeatUSD, subtotalUSD, invoiceId: invoice.id, billingEmail: account.billingEmail});
         }
         else throw new Error("User lacks permission");
     } catch (err) {
