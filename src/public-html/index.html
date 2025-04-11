@@ -3,14 +3,11 @@
         <meta charset="utf-8">
         <title>AnyModel Portal</title>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
         <!-- Font awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
 
         <link rel="stylesheet" href="style.css">
         <script src="index.js"></script>
-        <script src="graphs.js"></script>
     </head>
 
     <body onload="init()">
@@ -31,32 +28,6 @@
         <div id="logged-in">
             <p id="logged-in-msg"></p>
             <button onclick="logout()">Log Out</button>
-
-            <div id="affiliates">
-                <h2>Affiliates</h2>
-                <p>Info about affiliate scheme... blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah</p>
-
-                <h3>Your Links</h3>
-                <p><strong>Landing page affiliate link:</strong> <span id="landing-page-affiliate-link"></span></p>
-                <p><strong>"AnyModel for Marketers" landing page affiliate link:</strong> <span id="marketers-page-affiliate-link"></span></p>
-                <p><strong>Direct sign up affiliate link:</strong> <span id="signup-affiliate-link"></span></p>
-
-                <h3>Status</h3>
-                <p><strong>Total Referred Users:</strong> <span id="total-referred-users"></span></p>
-                <p><strong>Total Referred Subscribed Users:</strong> <span id="total-subscribed-users"></span></p>
-                <p><strong>Total Referred Plan1 Users:</strong> <span id="total-referred-plan1-users"></span></p>
-                <p><strong>Total Referred Plan2 Users:</strong> <span id="total-referred-plan2-users"></span></p>
-                <p><strong>Total Referred Plan3 Users:</strong> <span id="total-referred-plan3-users"></span></p>
-                <p><strong>Accumulated (guaranteed) commission this month:</strong> $<span id="guaranteed-commission"></span></p>
-                <p><strong>Projected* commission this month:</strong> $<span id="projected-commission"></span></p>
-                <p>*Assuming no new subscribers or cancellations during the rest of the month</p>
-            </div>
-
-            <div id="billing" class="org-admin">
-                <h2>Billing</h2>
-                <p>Credit Spend: <span id="credit-spend"></span></p>
-                <p>Renew Date: <span id="renew-date"></span></p>
-            </div>
             
             <!-- <div id="view-user" class="admin org-admin">
                 <h2>View User</h2>
@@ -213,25 +184,6 @@
                     <button type="submit">Create</button>
                 </form>
             </div>
-            
-
-            <div id="graphs" class="admin">
-                <h2>Weekly Users</h2>
-                <div id="weekly-users-graph">
-                    <canvas id="weekly-users-graph-canvas"></canvas>
-                </div>
-
-                <h2>Weekly Queries</h2>
-                <div id="weekly-queries-graph">
-                    <canvas id="weekly-queries-graph-canvas"></canvas>
-                </div>
-
-                <h2>Weekly Active Plans</h2>
-                <div id="weekly-plans-graph">
-                    <canvas id="weekly-plans-graph-canvas"></canvas>
-                </div>
-            </div>
-            
         </div>
     </body>
 </html>

@@ -1,6 +1,7 @@
 //2025 Munro Research Limited, All rights reserved
 
 const PREFIX = "portal"
+const LOG_OUT_URL = "/portal/";
 
 var credentials = null;
 var privilege = null;
@@ -17,16 +18,17 @@ async function init() {
 }
 
 async function postLogin() {
+    if (window.location.toString().includes("graphs.html")) {
+        initGraphs();
+        return;
+    } 
+
+    if (window.location.toString().includes("affiliate.html")) {
+        initAffiliates();
+        return;
+    } 
+
     if (privilege == "admin") {
-        metrics = await getMetrics();
-
-        try{
-            drawGraphs();
-        } catch(err) {
-            console.log(err);
-        }
-        
-
         for (const elem of document.getElementsByClassName("admin")) {
             elem.style.display = "block";
         }
@@ -51,13 +53,11 @@ async function postLogin() {
         
         await billingInfo();
     }
-
-    await affiliates();
 }
 
 async function logout() {
     localStorage.removeItem('credentials');
-    window.location = "/portal/"
+    window.location = LOG_OUT_URL;
 }
 
 async function login() {
@@ -250,45 +250,6 @@ async function createAccount() {
         let json = await response.json();
         alert(json.error);
     }
-}
-
-async function getMetrics() {
-    let response = await fetch(`/${PREFIX}/get-metrics`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials})
-    });
-
-    let json = await response.json();
-    return json.metrics;
-}
-
-async function affiliates() {
-    document.getElementById("landing-page-affiliate-link").innerHTML = `<a href="https://www.anymodel.xyz?referredBy=${id}">https://www.anymodel.xyz?referredBy=${id}</a>`
-    document.getElementById("marketers-page-affiliate-link").innerHTML = `<a href="https://www.anymodel.xyz/marketers?referredBy=${id}">https://www.anymodel.xyz/marketers?referredBy=${id}</a>`
-    document.getElementById("signup-affiliate-link").innerHTML = `<a href="https://app.anymodel.xyz?signup=true&referredBy=${id}">https://app.anymodel.xyz?signup=true&referredBy=${id}</a>`
-
-    let response = await fetch(`/${PREFIX}/get-affiliate-status`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials})
-    });
-
-    let json = await response.json();
-    
-    document.getElementById("total-referred-users").innerHTML = json.totalReferredUsers;
-    document.getElementById("total-subscribed-users").innerHTML = json.activeSubscribers.plan1 + json.activeSubscribers.plan2 + json.activeSubscribers.plan3;
-    document.getElementById("total-referred-plan1-users").innerHTML = json.activeSubscribers.plan1;
-    document.getElementById("total-referred-plan2-users").innerHTML = json.activeSubscribers.plan2;
-    document.getElementById("total-referred-plan3-users").innerHTML = json.activeSubscribers.plan3;
-    document.getElementById("guaranteed-commission").innerHTML = (json.accumulatedThisPeriod.plan1 * json.commissions.plan1) + (json.accumulatedThisPeriod.plan2 * json.commissions.plan2) + (json.accumulatedThisPeriod.plan3 * json.commissions.plan3);;
-    document.getElementById("projected-commission").innerHTML = (json.activeSubscribers.plan1 * json.commissions.plan1) + (json.activeSubscribers.plan2 * json.commissions.plan2) + (json.activeSubscribers.plan3 * json.commissions.plan3);
 }
 
 async function billingInfo() {
