@@ -86,12 +86,14 @@ async function calculateAccountCreditSpend(name) {
     let all = await users.find({account: name}).toArray();
 
     let total = 0;
+    let count = 0;
 
     for (const user of all) {
+        count++;
         total += user.credits;
     }
 
-    return total;
+    return {creditSpend: total, seats: count};
 }
 
 async function getMetrics() {

@@ -6,8 +6,6 @@ async function initIndex() {
             elem.style.display = "block";
         }
 
-        document.getElementById("new-account").value = account ? account : "";
-
         populateAccounts();
     } else if (privilege == "org-admin") {
         for (const elem of document.getElementsByClassName("org-admin")) {
@@ -21,7 +19,7 @@ async function initIndex() {
 
         const org = document.getElementById("new-account");
         org.readOnly = true;
-        org.value = account;
+        org.value = accountName;
 
         document.getElementById("new-privilege").style.display = "none";
         
@@ -32,19 +30,22 @@ async function initIndex() {
 }
 
 async function billingInfo() {
-    let response = await fetch(`/${PREFIX}/billing-info`, {
+    let response = await fetch(`/${PREFIX}/usage`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials})
+        body: JSON.stringify({credentials, accountName})
     });
 
     let info = await response.json();
 
+    document.getElementById("seats").innerHTML = info.seats;
     document.getElementById("credit-spend").innerHTML = info.creditSpend;
-    document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toLocaleString()
+    document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toLocaleString();
+
+    document.getElementById("view-account-link").href = `/${PREFIX}/account.html?name=${accountName}`;
 }
 
 async function populateUsers() {
@@ -64,7 +65,7 @@ async function populateUsers() {
     for (const user of result.users) {
         let rows = "";
 
-        rows += `<td>${user.username}</td>
+        rows += `<td><a href="/${PREFIX}/user.html?email=${user.email}">${user.username}</a></td>
             <td>${user.email}</td>`
 
         if (privilege == "admin") rows += `<td>${user.account ? user.account : "-"}</td>`;
@@ -80,7 +81,7 @@ async function populateUsers() {
                 <td>${user.plan}</td>
                 <td>${user.subscriptionStatus}</td>
                 <td>${new Date(user.renewDate * 1000).toLocaleDateString()}</td>
-                <td>${user.paymentService == "Stripe" ? `<a href="">Stripe</a>` : user.paymentService}</td>`;
+                <td>${user.paymentService == "Stripe" ? `<a href="https://dashboard.stripe.com/customers/${user.customerId}">Stripe</a>` : user.paymentService}</td>`;
         }
 
         rows += `<td>${user.credits}</td>
@@ -107,7 +108,7 @@ async function populateAccounts() {
 
     for (const account of result.accounts) {
         table.innerHTML += `<tr data-account-name="${account.name}">
-            <td>${account.name}</td>
+            <td><a href="/${PREFIX}/account.html?name=${account.name}">${account.name}</a></td>
             <td>${account.billingEmail}</td>
             <td>${account.subscriptionStatus}</td>
             <td>${account.minSpendUSD ? account.minSpendUSD : "n/a"}</td>

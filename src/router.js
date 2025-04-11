@@ -33,17 +33,49 @@ router.post("/view-user", async (req, res) => {
         const { email, password } = credentials;
     
         let user = await login(email, password);
+
+        let retrievedUser = null;
     
         if (user.privilege == "admin") {
-            let retrievedUser =  await database.getUser({email: userEmail.toLowerCase()});
+            retrievedUser =  await database.getUser({email: userEmail.toLowerCase()});
+        } else if (user.privilege == "org-admin") {
+            retrievedUser =  await database.getUser({email: userEmail.toLowerCase(), account: user.account});
+        } else throw new Error("User lacks permission");
 
-            if (retrievedUser) {
-                res.status(200).json({
-                    user: retrievedUser,
-                });
-            } else throw new Error("User not found");
-        }
-        else throw new Error("User lacks permission");
+        if (retrievedUser) {
+            delete retrievedUser.auth;
+
+            res.status(200).json({
+                user: retrievedUser,
+            });
+        } else throw new Error("User not found");
+    } catch (err) {
+        log.error(err);
+        res.status(400).json({error: err.message});
+    }
+})
+
+router.post("/view-account", async (req, res) => {
+    try {
+        const { credentials, name } = req.body;
+        const { email, password } = credentials;
+    
+        let user = await login(email, password);
+
+        let retrievedAccount = null;
+    
+        if (user.privilege == "admin") {
+            retrievedAccount =  await database.getAccount(name);
+        } else if (user.privilege == "org-admin") {
+            retrievedAccount =  await database.getAccount(name);
+            if (user.account != retrievedAccount.name) throw Error("User does not belong to account");
+        }else throw new Error("User lacks permission");
+
+        if (retrievedAccount) {
+            res.status(200).json({
+                account: retrievedAccount,
+            });
+        } else throw new Error("Account not found");
     } catch (err) {
         log.error(err);
         res.status(400).json({error: err.message});
@@ -57,31 +89,23 @@ router.post("/get-users", async (req, res) => {
     
         let user = await login(email, password);
 
+        let retrievedUsers = null;
         let max = 0;
         if (req.body.max) max = req.body.max;
-    
+
         if (user.privilege == "admin") {
-            let retrievedUsers =  await database.getUsers({}, max);
-
-            for (let user of retrievedUsers) {
-                delete user.auth;
-            }
-
-            res.status(200).json({
-                users: retrievedUsers,
-            });
+            retrievedUsers =  await database.getUsers({}, max);
         } else if (user.privilege == "org-admin") {
-            let retrievedUsers =  await database.getUsers({account: user.account}, max);
+            retrievedUsers =  await database.getUsers({account: user.account}, max);
+        } else throw new Error("User lacks permission");
 
-            for (let user of retrievedUsers) {
-                delete user.auth;
-            }
-            
-            res.status(200).json({
-                users: retrievedUsers,
-            });
+        for (let user of retrievedUsers) {
+            delete user.auth;
         }
-        else throw new Error("User lacks permission");
+
+        res.status(200).json({
+            users: retrievedUsers,
+        });
     } catch (err) {
         log.error(err);
         res.status(400).json({error: err.message});
@@ -392,23 +416,26 @@ router.post("/delete-account", async (req, res) => {
     }
 })
 
-router.post("/billing-info", async (req, res) => {
+router.post("/usage", async (req, res) => {
     try {
-        const { credentials } = req.body;
+        const { credentials, accountName } = req.body;
         const { email, password } = credentials;
     
         let user = await login(email, password);
-    
-        if (user.privilege == "org-admin") {
-            let account =  await database.getAccount(user.account);
-            let creditSpend = await database.calculateAccountCreditSpend(user.account);
 
-            res.status(200).json({
-                renewDate: account.renewDate,
-                creditSpend: creditSpend,
-            });
-        }
-        else throw new Error("User lacks permission");
+        let account =  await database.getAccount(accountName);
+        if (account) {
+            if (user.privilege == "admin" || (user.privilege == "org-admin" && user.account == account.name)) {
+                let {creditSpend, seats} = await database.calculateAccountCreditSpend(accountName);
+
+                res.status(200).json({
+                    renewDate: account.renewDate,
+                    creditSpend: creditSpend,
+                    seats: seats,
+                });
+            } else throw new Error("User lacks permission")
+        } else throw new Error("Account not found");
+
     } catch (err) {
         log.error(err);
         res.status(400).json({error: err.message});
