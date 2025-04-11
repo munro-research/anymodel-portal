@@ -14,6 +14,8 @@ async function initIndex() {
             elem.style.display = "block";
         }
 
+        document.querySelectorAll(".admin-table").forEach(e => e.remove());
+
         document.getElementById("plans").innerHTML = `<option value="sub-account" selected>Sub account</option>`
         document.getElementById("plan-selection").style.display = "none";
 
@@ -22,65 +24,104 @@ async function initIndex() {
         org.value = account;
 
         document.getElementById("new-privilege").style.display = "none";
-        document.getElementById("new-user-min-spend").style.display = "none";
         
         await billingInfo();
     }
+
+    await populateUsers();
 }
 
-async function deleteUser(userEmail) {
-    if (confirm(`Are you sure you want to PERMANENTLY delete user ${userEmail}?`) && confirm(`FINAL WARNING: This will DELETE ${userEmail} - are you sure?`)) {
-        let response = await fetch(`/${PREFIX}/delete-user`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({credentials, userEmail})
-        });
+async function billingInfo() {
+    let response = await fetch(`/${PREFIX}/billing-info`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials})
+    });
 
-        if (response.status == 200) {
-            alert(`User '${userEmail}' deleted`);
-        } else {
-            let json = await response.json();
-            alert(json.error);
+    let info = await response.json();
+
+    document.getElementById("credit-spend").innerHTML = info.creditSpend;
+    document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toLocaleString()
+}
+
+async function populateUsers() {
+    let response = await fetch(`/${PREFIX}/get-users`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials})
+    });
+
+    let result = await response.json();
+    const table = document.getElementById("user-table-body");
+    table.innerHTML = "";
+
+    for (const user of result.users) {
+        let rows = "";
+
+        rows += `<td>${user.username}</td>
+            <td>${user.email}</td>`
+
+        if (privilege == "admin") rows += `<td>${user.account ? user.account : "-"}</td>`;
+
+        rows += `<td>${new Date(user.signUpDate).toLocaleDateString()}</td>
+            <td>${new Date(user.lastUsed).toLocaleDateString()}</td>
+            <td>${user.privilege ? user.privilege : "n/a"}</td>
+            <td>${user.banned === true ? "YES" : "NO"}</td>`
+
+        if (privilege == "admin") {
+            rows += `<td>${user.emailConsent}</td>
+                <td>${user.analyticsConsent}</td>
+                <td>${user.plan}</td>
+                <td>${user.subscriptionStatus}</td>
+                <td>${new Date(user.renewDate * 1000).toLocaleDateString()}</td>
+                <td>${user.paymentService == "Stripe" ? `<a href="">Stripe</a>` : user.paymentService}</td>`;
         }
+
+        rows += `<td>${user.credits}</td>
+            <td>${user.banned ? `<i onclick="unbanUser('${user.email}')" class="fa-solid fa-user-check"></i>` : `<i onclick="banUser('${user.email}')" class="fa-solid fa-ban"></i>`}</td>
+            <td><i onclick="deleteUser('${user.email}')" class="fa-solid fa-trash"></i></td>`;
+
+        table.innerHTML += `<tr data-account-email="${user.email}">${rows}</tr>`;
     }
 }
 
-async function banUser(userEmail) {
-    let response = await fetch(`/${PREFIX}/ban-user`, {
+async function populateAccounts() {
+    let response = await fetch(`/${PREFIX}/get-accounts`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, userEmail})
+        body: JSON.stringify({credentials})
     });
 
-    if (response.status == 200) {
-        alert(`User '${userEmail}' banned`);
-    } else {
-        let json = await response.json();
-        alert(json.error);
-    }
-}
+    let result = await response.json();
+    const table = document.getElementById("account-table-body");
+    table.innerHTML = "";
 
-async function unbanUser(userEmail) {
-    let response = await fetch(`/${PREFIX}/unban-user`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials, userEmail})
-    });
-
-    if (response.status == 200) {
-        alert(`User '${userEmail}' unbanned`);
-    } else {
-        let json = await response.json();
-        alert(json.error);
+    for (const account of result.accounts) {
+        table.innerHTML += `<tr data-account-name="${account.name}">
+            <td>${account.name}</td>
+            <td>${account.billingEmail}</td>
+            <td>${account.subscriptionStatus}</td>
+            <td>${account.minSpendUSD ? account.minSpendUSD : "n/a"}</td>
+            <td>${account.minSpendPerSeatUSD ? account.minSpendPerSeatUSD : "n/a"}</td>
+            <!--  <td>0</td>  -->
+            <!--  <td>0</td>  -->
+            <td>${new Date(account.renewDate * 1000).toLocaleDateString()}</td>
+            <td><a href="https://dashboard.stripe.com/customers/${account.customerId}">Stripe</a></td>
+            <td>${account.invoices.length > 1 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 2]}">Previous</a>` : ""}</td>
+            <td>${account.invoices.length > 0 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 1]}">Latest</a>` : ""}</td>
+            <td>${account.subscriptionStatus == "active" ? `<i onclick="cancelAccount('${account.name}')" class="fa-solid fa-xmark"></i>` : `<i onclick="activateAccount('${account.name}')" class="fa-solid fa-check"></i>`}</td>
+            <td><i onclick="generateInvoice('${account.name}')" class="fa-solid fa-file-invoice-dollar"></i></td>
+            <td><i onclick="deleteAccount('${account.name}')" class="fa-solid fa-trash"></i></td>
+        </tr>`
     }
 }
 
@@ -89,7 +130,6 @@ async function createUser() {
     let password = document.getElementById("new-password").value;
     let plan = document.getElementById("plans").value; 
     let changePassword = document.getElementById("change-password").checked;
-    let minSpendUSD = document.getElementById("min-spend").valueAsNumber;
 
     let account = document.getElementById("new-account").value;
     if (account == "") account = null;
@@ -104,11 +144,12 @@ async function createUser() {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, account, privilege: privilegeLevel, minSpendUSD}})
+        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, account, privilege: privilegeLevel}})
     });
 
     if (response.status == 200) {
         alert(`User '${email}' created`);
+        populateUsers();
     } else {
         let json = await response.json();
         alert(json.error);
@@ -144,20 +185,63 @@ async function createAccount() {
     }
 }
 
-async function billingInfo() {
-    let response = await fetch(`/${PREFIX}/billing-info`, {
+async function deleteUser(userEmail) {
+    if (confirm(`Are you sure you want to PERMANENTLY delete user ${userEmail}?`) && confirm(`FINAL WARNING: This will DELETE ${userEmail} - are you sure?`)) {
+        let response = await fetch(`/${PREFIX}/delete-user`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({credentials, userEmail})
+        });
+
+        if (response.status == 200) {
+            alert(`User '${userEmail}' deleted`);
+            populateUsers();
+        } else {
+            let json = await response.json();
+            alert(json.error);
+        }
+    }
+}
+
+async function banUser(userEmail) {
+    let response = await fetch(`/${PREFIX}/ban-user`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials})
+        body: JSON.stringify({credentials, userEmail})
     });
 
-    let info = await response.json();
+    if (response.status == 200) {
+        alert(`User '${userEmail}' banned`);
+        populateUsers();
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
+}
 
-    document.getElementById("credit-spend").innerHTML = info.creditSpend;
-    document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toLocaleString()
+async function unbanUser(userEmail) {
+    let response = await fetch(`/${PREFIX}/unban-user`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, userEmail})
+    });
+
+    if (response.status == 200) {
+        alert(`User '${userEmail}' unbanned`);
+        populateUsers();
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
 }
 
 async function generateInvoice(account) {
@@ -176,40 +260,6 @@ async function generateInvoice(account) {
     populateAccounts();
 
     alert(`Invoice '${result.invoiceId}' ($${result.subtotalUSD}) created and emailed to ${result.billingEmail}`);
-}
-
-async function populateAccounts() {
-    let response = await fetch(`/${PREFIX}/get-accounts`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials})
-    });
-
-    let result = await response.json();
-    const table = document.getElementById("account-table-body");
-    table.innerHTML = "";
-
-    for (const account of result.accounts) {
-        table.innerHTML += `<tr data-account-name="${account.name}">
-            <td>${account.name}</td>
-            <td>${account.billingEmail}</td>
-            <td>${account.subscriptionStatus}</td>
-            <td>${account.minSpendUSD ? account.minSpendUSD : "n/a"}</td>
-            <td>${account.minSpendPerSeatUSD ? account.minSpendPerSeatUSD : "n/a"}</td>
-            <!--  <td>0</td>  -->
-            <!--  <td>0</td>  -->
-            <td>${new Date(account.renewDate * 1000).toLocaleDateString()}</td>
-            <td><a href="https://dashboard.stripe.com/customers/${account.customerId}">Stripe</a></td>
-            <td>${account.invoices.length > 1 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 2]}">Previous</a>` : ""}</td>
-            <td>${account.invoices.length > 0 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 1]}">Latest</a>` : ""}</td>
-            <td>${account.subscriptionStatus == "active" ? `<i onclick="cancelAccount('${account.name}')" class="fa-solid fa-xmark"></i>` : `<i onclick="activateAccount('${account.name}')" class="fa-solid fa-check"></i>`}</td>
-            <td><i onclick="generateInvoice('${account.name}')" class="fa-solid fa-file-invoice-dollar"></i></td>
-            <td><i onclick="deleteAccount('${account.name}')" class="fa-solid fa-trash"></i></td>
-        </tr>`
-    }
 }
 
 async function cancelAccount(accountName) {
@@ -253,16 +303,14 @@ async function deleteAccount(accountName) {
     }
 }
 
-function searchAccounts() {
-    // Declare variables
-    var input, filter, table, tr, i, txtValue;
-    input = document.getElementById("account-search");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("account-table");
-    tr = table.getElementsByTagName("tr");
+function searchTwoColumns(inputId, tableId) {
+    const input = document.getElementById(inputId);
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById(tableId);
+    const tr = table.getElementsByTagName("tr");
 
     // Loop through all table rows, and hide those who don't match the search query
-    for (i = 0; i < tr.length; i++) {
+    for (let i = 0; i < tr.length; i++) {
         const name = tr[i].getElementsByTagName("td")[0];
         const email = tr[i].getElementsByTagName("td")[1];
 
