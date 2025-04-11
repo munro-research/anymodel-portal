@@ -47,7 +47,7 @@ function populateUser(user) {
     document.getElementById("user-last-used").innerHTML = new Date(user.lastUsed).toLocaleString();
     document.getElementById("user-privilege").innerHTML = user.privilege;
     document.getElementById("user-banned").innerHTML = user.banned;
-    document.getElementById("user-payment-service").innerHTML = `<a href="https://dashboard.stripe.com/customers/${user.customerId}">Stripe</a>`;
+    document.getElementById("user-payment-service").innerHTML = user.paymentService == "Stripe" ? `<a href="https://dashboard.stripe.com/customers/${user.customerId}">Stripe</a>` : user.paymentService;
     document.getElementById("user-credits").innerHTML = user.credits;
 
     if (privilege == "admin") {
