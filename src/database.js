@@ -49,6 +49,13 @@ async function getAccount(name) {
     return await accounts.findOne({name: name});
 }
 
+async function getAccounts(query, max=0) {
+    await client.connect();
+    const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
+
+    return await accounts.find(query).limit(max).toArray();
+}
+
 async function saveNewAccount(account) {
     await client.connect();
     const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
@@ -61,6 +68,15 @@ async function replaceAccount(account) {
     const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
 
     await accounts.replaceOne({_id: account._id}, account);
+}
+
+async function deleteAccountAndUsers(accountName) {
+    await client.connect();
+    const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    await users.deleteMany({account: accountName});
+    await accounts.deleteOne({name: accountName});
 }
 
 async function calculateAccountCreditSpend(name) {
@@ -95,6 +111,6 @@ async function getUsersReferredBy(id) {
 module.exports = {
     getUser, replaceUser, saveNewUser, deleteUser, getUsers,
     getMetrics, getUsersReferredBy, 
-    getAccount, saveNewAccount, replaceAccount,
+    getAccount, saveNewAccount, replaceAccount, getAccounts, deleteAccountAndUsers,
     calculateAccountCreditSpend
 }

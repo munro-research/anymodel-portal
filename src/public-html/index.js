@@ -32,6 +32,8 @@ async function postLogin() {
         }
 
         document.getElementById("new-account").value = account ? account : "";
+
+        populateAccounts();
     } else if (privilege == "org-admin") {
         for (const elem of document.getElementsByClassName("org-admin")) {
             elem.style.display = "block";
@@ -243,6 +245,7 @@ async function createAccount() {
 
     if (response.status == 200) {
         alert(`Account '${name}' created`);
+        populateAccounts();
     } else {
         let json = await response.json();
         alert(json.error);
@@ -304,9 +307,7 @@ async function billingInfo() {
     document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toLocaleString()
 }
 
-async function generateInvoice() {
-    let account = document.getElementById("invoice-account").value;
-
+async function generateInvoice(account) {
     let response = await fetch(`/${PREFIX}/generate-invoice`, {
         method: 'POST',
         headers: {
@@ -318,5 +319,112 @@ async function generateInvoice() {
 
     let result = await response.json();
     console.log(result);
+
+    populateAccounts();
+
+    alert(`Invoice '${result.invoiceId}' ($${result.subtotalUSD}) created and emailed to ${result.billingEmail}`);
+
+    //TODO: show modal with link to invoice
     // window.open(`https://dashboard.stripe.com/invoices/${result.invoiceId}`)
+}
+
+async function populateAccounts() {
+    let response = await fetch(`/${PREFIX}/get-accounts`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials})
+    });
+
+    let result = await response.json();
+    const table = document.getElementById("account-table-body");
+    table.innerHTML = "";
+
+    for (const account of result.accounts) {
+        table.innerHTML += `<tr data-account-name="${account.name}">
+            <td>${account.name}</td>
+            <td>${account.billingEmail}</td>
+            <td>${account.subscriptionStatus}</td>
+            <td>${account.minSpendUSD ? account.minSpendUSD : "n/a"}</td>
+            <td>${account.minSpendPerSeatUSD ? account.minSpendPerSeatUSD : "n/a"}</td>
+            <!--  <td>0</td>  -->
+            <!--  <td>0</td>  -->
+            <td>${new Date(account.renewDate * 1000).toLocaleDateString()}</td>
+            <td><a href="https://dashboard.stripe.com/customers/${account.customerId}">Stripe</a></td>
+            <td>${account.invoices.length > 1 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 2]}">Previous</a>` : ""}</td>
+            <td>${account.invoices.length > 0 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 1]}">Latest</a>` : ""}</td>
+            <td>${account.subscriptionStatus == "active" ? `<i onclick="cancelAccount('${account.name}')" class="fa-solid fa-xmark"></i>` : `<i onclick="activateAccount('${account.name}')" class="fa-solid fa-check"></i>`}</td>
+            <td><i onclick="generateInvoice('${account.name}')" class="fa-solid fa-file-invoice-dollar"></i></td>
+            <td><i onclick="deleteAccount('${account.name}')" class="fa-solid fa-trash"></i></td>
+        </tr>`
+    }
+}
+
+async function cancelAccount(accountName) {
+    await fetch(`/${PREFIX}/cancel-account`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, accountName})
+    });
+
+    populateAccounts();
+}
+
+async function activateAccount(accountName) {
+    await fetch(`/${PREFIX}/activate-account`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, accountName})
+    });
+
+    populateAccounts();
+}
+
+async function deleteAccount(accountName) {
+    if (confirm(`Are you sure you want to PERMANENTLY delete account ${accountName}?`) && confirm(`FINAL WARNING: This will DELETE the account and ALL associated users - are you sure?`)) {
+        await fetch(`/${PREFIX}/delete-account`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({credentials, accountName})
+        });
+
+        populateAccounts();
+    }
+}
+
+function searchAccounts() {
+    // Declare variables
+    var input, filter, table, tr, i, txtValue;
+    input = document.getElementById("account-search");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("account-table");
+    tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those who don't match the search query
+    for (i = 0; i < tr.length; i++) {
+        const name = tr[i].getElementsByTagName("td")[0];
+        const email = tr[i].getElementsByTagName("td")[1];
+
+        if (name && email) {
+            nameValue = name.textContent || name.innerText;
+            emailValue = email.textContent || email.innerText;
+
+            if (nameValue.toUpperCase().indexOf(filter) > -1 || emailValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
 }
