@@ -57,17 +57,25 @@ router.post("/get-users", async (req, res) => {
     
         let user = await login(email, password);
 
-        let max = 10;
+        let max = 0;
         if (req.body.max) max = req.body.max;
     
         if (user.privilege == "admin") {
             let retrievedUsers =  await database.getUsers({}, max);
+
+            for (let user of retrievedUsers) {
+                delete user.auth;
+            }
 
             res.status(200).json({
                 users: retrievedUsers,
             });
         } else if (user.privilege == "org-admin") {
             let retrievedUsers =  await database.getUsers({account: user.account}, max);
+
+            for (let user of retrievedUsers) {
+                delete user.auth;
+            }
             
             res.status(200).json({
                 users: retrievedUsers,
@@ -106,6 +114,8 @@ router.post("/ban-user", async (req, res) => {
     try {
         const { credentials, userEmail } = req.body;
         const { email, password } = credentials;
+
+        console.log(userEmail);
     
         let user = await login(email, password);
     
@@ -113,8 +123,8 @@ router.post("/ban-user", async (req, res) => {
             let retrievedUser =  await database.getUser({email: userEmail.toLowerCase()});
 
             if (retrievedUser) {
-                user.banned = true;
-                await database.replaceUser(user)
+                retrievedUser.banned = true;
+                await database.replaceUser(retrievedUser)
                 res.status(200).send();
             } else throw new Error("User not found");
         }
@@ -129,6 +139,8 @@ router.post("/unban-user", async (req, res) => {
     try {
         const { credentials, userEmail } = req.body;
         const { email, password } = credentials;
+
+        console.log(userEmail);
     
         let user = await login(email, password);
     
@@ -136,8 +148,8 @@ router.post("/unban-user", async (req, res) => {
             let retrievedUser =  await database.getUser({email: userEmail.toLowerCase()});
 
             if (retrievedUser) {
-                user.banned = false;
-                await database.replaceUser(user)
+                retrievedUser.banned = false;
+                await database.replaceUser(retrievedUser)
                 res.status(200).send();
             } else throw new Error("User not found");
         }
@@ -207,7 +219,6 @@ router.post("/create-user", async (req, res) => {
                 pendingUser.subscriptionStatus = plan == "trial" ? "trial" : "active";
                 pendingUser.renewDate = plan == "trial" ? null : renewDate.getTime() / 1000;
                 pendingUser.paymentService = paymentService;
-                pendingUser.minSpendUSD = newUser.minSpendUSD;
             }
 
             await database.saveNewUser(pendingUser);
