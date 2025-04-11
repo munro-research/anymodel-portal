@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>AnyModel Portal</title>
+
+        <!-- Font awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
+
+        <link rel="stylesheet" href="style.css">
+        <script src="init.js"></script>
+        <script src="user.js"></script>
+    </head>
+
+    <body onload="init()">
+        <h1>AnyModel Portal</h1>
+
+        <div id="logged-out" >
+            <form id="log-in-form" action="javascript:login()">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="name@example.com">
+                <br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password">
+                <br>
+                <button type="submit">Log In</button>
+            </form>
+        </div>
+
+        <div id="logged-in">
+            <p id="logged-in-msg"></p>
+            <button onclick="logout()">Log Out</button>
+
+            <div id="view-user">
+                <h2>User Details</h2>
+                <p><strong>ID:</strong> <span id="user-id"></span></p>
+                <p><strong>Username:</strong> <span id="user-username"></span></p>
+                <p><strong>Email:</strong> <span id="user-email"></span></p>
+                <p><strong>Sign Up Date:</strong> <span id="user-signup-date"></span></p>
+                <p><strong>Last Used:</strong> <span id="user-last-used"></span></p>
+                <p><strong>Privilege:</strong> <span id="user-privilege"></span></p>
+                <p><strong>Banned:</strong> <span id="user-banned"></span></p>
+                <p class="admin"><strong>Plan:</strong> <span id="user-plan"></span></p>
+                <p class="admin"><strong>Payment Service:</strong> <span id="user-payment-service"></span></p>
+                <p class="admin"><strong>Status:</strong> <span id="user-status"></span></p>
+                <p class="admin"><strong>Renew Date:</strong> <span id="user-renew-date"></span></p>
+                <p class="admin"><strong>Analytics Consent:</strong> <span id="user-analytics-consent"></span></p>
+                <p class="admin"><strong>Email Consent:</strong> <span id="user-email-consent"></span></p>
+                <p><strong id="credits-msg">Credits Used:</strong> <span id="user-credits"></span></p>
+            </div>
+        </div>
+    </body>
+</html>

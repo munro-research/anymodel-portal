@@ -5,8 +5,8 @@ const LOG_OUT_URL = "/portal/";
 
 var credentials = null;
 var privilege = null;
-let account = null;
 var id = null;
+var accountName = null;
 
 async function init() {
     let item = localStorage.getItem('credentials');
@@ -29,6 +29,16 @@ async function postLogin() {
 
     if (window.location.toString().includes("affiliate.html")) {
         initAffiliates();
+        return;
+    } 
+
+    if (window.location.toString().includes("account.html")) {
+        initAccount();
+        return;
+    } 
+
+    if (window.location.toString().includes("user.html")) {
+        initUser();
         return;
     } 
 }
@@ -63,7 +73,7 @@ async function processLogin(email, password) {
     if (response.status == 200) {
         credentials = {email, password};
         privilege = json.privilege;
-        account = json.account;
+        accountName = json.account;
         id = json.id;
 
         if (!privilege) privilege = "standard"
