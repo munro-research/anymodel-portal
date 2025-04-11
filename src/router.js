@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const log = require("./log.js");
 const database = require("./database.js")
@@ -178,6 +179,7 @@ router.post("/create-user", async (req, res) => {
 
                 if (account) {
                     pendingUser.account = newUser.account;
+                    pendingUser.credits = 0;
                 } else {
                     throw new Error("Account not found!");
                 }
@@ -185,11 +187,28 @@ router.post("/create-user", async (req, res) => {
                 let renewDate = new Date();
                 renewDate.setMonth(renewDate.getMonth() + 1);
 
-                pendingUser.plan = newUser.plan;
-                pendingUser.credits = anyModelOptions.plans[newUser.plan].credits ? Number(anyModelOptions.plans[newUser.plan].credits) : 0;
-                pendingUser.subscriptionStatus = newUser.plan == "trial" ? "trial" : "active";
-                pendingUser.renewDate = newUser.plan == "trial" ? null : renewDate.getTime() / 1000;
-                pendingUser.paymentService = newUser.paymentService;
+                let paymentService  = null; 
+                let plan = newUser.plan;
+
+                if (plan.endsWith("-manual")) {
+                    plan = plan.replaceAll("-manual", "");
+            
+                    if (plan != "trial") {
+                        paymentService = "Manual";
+                    }
+                } else if (plan.endsWith("-extended-trial")) {
+                    plan = plan.replaceAll("-extended-trial", "");
+            
+                    paymentService = "Extended Trial";
+                }
+
+                console.log(plan);
+
+                pendingUser.plan = plan;
+                pendingUser.credits = anyModelOptions.plans[plan].credits ? Number(anyModelOptions.plans[plan].credits) : 0;
+                pendingUser.subscriptionStatus = plan == "trial" ? "trial" : "active";
+                pendingUser.renewDate = plan == "trial" ? null : renewDate.getTime() / 1000;
+                pendingUser.paymentService = paymentService;
                 pendingUser.minSpendUSD = newUser.minSpendUSD;
             }
 
@@ -236,13 +255,36 @@ router.post("/create-account", async (req, res) => {
             let renewDate = new Date();
             renewDate.setMonth(renewDate.getMonth() + 1);
 
+            let plan = newAccount.plan;
+            let paymentService = null;
+            let customerId = null;
+            if (plan.endsWith("-manual")) {
+                plan = plan.replaceAll("-manual", "");
+
+                paymentService = "Manual";
+            } else if (plan.endsWith("-stripe-invoice")) {
+                plan = plan.replaceAll("-stripe-invoice", "");
+        
+                paymentService = "Stripe Invoice";
+        
+                const customer = await stripe.customers.create({
+                    name: newAccount.name,
+                    email: newAccount.billingEmail,
+                });
+
+                customerId = customer.id;
+            }
+
             let account = {
                 name: newAccount.name,
+                billingEmail: newAccount.billingEmail,
                 signUpDate: new Date(),
                 subscriptionStatus: "active",
-                plan: "plan3",
+                plan: plan,
                 renewDate: renewDate.getTime() / 1000,
-                paymentService: "Manual",
+                paymentService: paymentService,
+                customerId: customerId,
+                invoices: [],
             }
 
             console.log(newAccount);
@@ -270,8 +312,10 @@ router.post("/billing-info", async (req, res) => {
         if (user.privilege == "org-admin") {
             let account =  await database.getAccount(user.account);
             let creditSpend = await database.calculateAccountCreditSpend(user.account);
-            
-            res.status(400).json({
+
+            console.log(creditSpend);
+
+            res.status(200).json({
                 renewDate: account.renewDate,
                 creditSpend: creditSpend,
             });
@@ -320,54 +364,74 @@ router.post("/generate-invoice", async (req, res) => {
             let minSpendUSD = 0;
             let minSpendPerSeatUSD = 0;
 
-            if (accountName.includes("@")) {
-                //user
-                let user = await database.getUser({email: accountName});
+            //account
+            let account = await database.getAccount(accountName);
 
-                if (!user) throw new Error("User not found");
-                if (user.paymentService != "Manual") throw new Error("Manual billing is not enabled for this user.");
-                if (user.plan != "plan3") throw new Error("User plan does not support invoices.");
+            if (!account) throw new Error("Account not found");
+            if (account.paymentService != "Stripe Invoice") throw new Error("Stripe Invoice billing is not enabled for this account.");
+            if (account.plan != "plan3") throw new Error("Account plan does not support invoices.");
 
-                creditsConsumed = user.credits;
+            let users = await database.getUsers({account: account.name});
+            for (const user of users) {
+                seats++;
+                creditsConsumed += user.credits;
                 user.credits = 0;
-                user.renewDate = renewDate.getTime() / 1000;
-
-                if (user.minSpendUSD) minSpendUSD = user.minSpendUSD;
-
                 await database.replaceUser(user);
-            } else {
-                //account
-                let account = await database.getAccount(accountName);
+            }
 
-                if (!account) throw new Error("Account not found");
-                if (account.paymentService != "Manual") throw new Error("Manual billing is not enabled for this account.");
-                if (account.plan != "plan3") throw new Error("Account plan does not support invoices.");
+            account.renewDate = renewDate.getTime() / 1000;
 
-                let users = await database.getUsers({account: account.name});
-                for (const user of users) {
-                    seats++;
-                    creditsConsumed += user.credits;
-                    user.credits = 0;
-                    await database.replaceUser(user);
-                }
-
-                account.renewDate = renewDate.getTime() / 1000;
-
-                if (account.minSpendUSD) minSpendUSD = account.minSpendUSD;
-                if (account.minSpendPerSeatUSD) {
-                    minSpendPerSeatUSD = account.minSpendPerSeatUSD;
-                    minSpendUSD = minSpendPerSeatUSD * seats;
-                }
-
-                await database.replaceAccount(account);
+            if (account.minSpendUSD) minSpendUSD = account.minSpendUSD;
+            if (account.minSpendPerSeatUSD) {
+                minSpendPerSeatUSD = account.minSpendPerSeatUSD;
+                minSpendUSD = minSpendPerSeatUSD * seats;
             }
 
             let spendUSD = creditsConsumed > 0 ?
                 Math.ceil((creditsConsumed / anyModelOptions.plans.plan3.creditsPerDollar) * 100) / 100 : 0;
 
+            let spendCents = spendUSD * 100;
+
             let subtotalUSD = Math.max(spendUSD, minSpendUSD);
 
-            res.status(200).json({creditsConsumed, spendUSD, seats, minSpendUSD, minSpendPerSeatUSD, subtotalUSD});
+            const invoice = await stripe.invoices.create({
+                customer: account.customerId,
+                currency: "usd",
+                collection_method: "send_invoice",
+                days_until_due: Number(process.env.INVOICE_DAYS_UNTIL_DUE),
+                auto_advance: true,
+            });
+
+            await stripe.invoiceItems.create({
+                invoice: invoice.id,
+                customer: account.customerId,
+                pricing: {
+                price: process.env.ANYMODEL_CREDIT_PRICE_ID,
+                },
+                quantity: Math.round(spendCents)
+            });
+
+            if (spendUSD < minSpendUSD) {
+                let unspentUSD = minSpendUSD - spendUSD;
+                let unspentCents = unspentUSD * 100;
+
+                await stripe.invoiceItems.create({
+                    invoice: invoice.id,
+                    customer: account.customerId,
+                    pricing: {
+                    price: process.env.ANYMODEL_UNSPENT_CREDIT_PRICE_ID,
+                    },
+                    quantity: Math.round(unspentCents)
+                });
+            }
+
+            await stripe.invoices.finalizeInvoice(invoice.id, {auto_advance: true});
+
+            account.invoices.push(invoice.id);
+
+            await database.replaceAccount(account);
+
+            res.status(200).json({creditsConsumed, spendUSD, seats, minSpendUSD, minSpendPerSeatUSD, subtotalUSD, invoiceId: invoice.id});
         }
         else throw new Error("User lacks permission");
     } catch (err) {
