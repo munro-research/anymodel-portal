@@ -12,6 +12,8 @@ async function initAccount() {
 
             populateAccount(account);
 
+            safetySettingState();
+
             if (privilege == "admin") {
                 for (const elem of document.getElementsByClassName("admin")) {
                     elem.style.display = "block";
@@ -60,6 +62,9 @@ function populateAccount(account) {
     document.getElementById("account-invoices").innerHTML = invoices;
 
     billingInfo(account.name);
+
+    document.getElementById("default-user-quota").value = account.defaultUserQuota;
+    setSafetySettingState(account.defaultSafetySettings);
 }
 
 async function billingInfo(accountName) {
@@ -76,4 +81,29 @@ async function billingInfo(accountName) {
 
     document.getElementById("account-total-credit-spend").innerHTML = info.creditSpend;
     document.getElementById("account-seats").innerHTML = info.seats;
+}
+
+async function updateDefaultUserQuota() {
+    let quota = document.getElementById("default-user-quota").value;
+    await fetch(`/${PREFIX}/update-account-default-quota`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, accountName: account.name, quota})
+    });
+}
+
+async function updateDefaultUserSafety() {
+    let settings = safetySettingState();
+    
+    await fetch(`/${PREFIX}/update-account-default-safety-settings`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, accountName: account.name, settings})
+    });
 }

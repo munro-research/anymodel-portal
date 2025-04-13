@@ -68,7 +68,7 @@ async function populateUsers() {
         rows += `<td><a href="/${PREFIX}/user.html?email=${user.email}">${user.username}</a></td>
             <td>${user.email}</td>`
 
-        if (privilege == "admin") rows += `<td>${user.account ? user.account : "-"}</td>`;
+        if (privilege == "admin") rows += `<td>${user.account ? `<a href="/${PREFIX}/account.html?name=${user.account}">${user.account}</a>` : "n/a"}</td>`;
 
         rows += `<td>${new Date(user.signUpDate).toLocaleDateString()}</td>
             <td>${new Date(user.lastUsed).toLocaleDateString()}</td>

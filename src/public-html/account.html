@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="style.css">
         <script src="init.js"></script>
         <script src="account.js"></script>
+        <script src="safetyTable.js"></script>
     </head>
 
     <body onload="init()">
@@ -22,12 +23,14 @@
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password">
                 <br>
+                <button type="button" onclick="window.location = LOG_OUT_URL;">Home</button>
                 <button type="submit">Log In</button>
             </form>
         </div>
 
         <div id="logged-in">
             <p id="logged-in-msg"></p>
+            <button onclick="window.location = LOG_OUT_URL;">Home</button>
             <button onclick="logout()">Log Out</button>
 
             <div id="view-account">
@@ -41,12 +44,129 @@
                 <p><strong>Status:</strong> <span id="account-status"></span></p>
                 <p><strong>Min Spend (USD):</strong> <span id="account-min-spend"></span></p>
                 <p><strong>Min Spend / Seat (USD):</strong> <span id="account-min-spend-per-seat"></span></p>
+            </div>
 
+            <div id="view-usage">
                 <h2>Account Usage</h2>
                 <p><strong>Seats: </strong> <span id="account-seats"></span></p>
                 <p><strong>Total Credit Usage:</strong> <span id="account-total-credit-spend"></span></p>
                 <p><strong>Renew Date:</strong> <span id="account-renew-date"></span></p>
+            </div>
 
+            <div id="account-settings">
+                <h2>Account Settings</h2>
+                <form action="javascript:updateDefaultUserQuota()">
+                    <label for="new-email">Default User Quota:</label>
+                    <input type="number" id="default-user-quota" name="default-user-quota">
+                    <button type="submit">Update</button>
+                </form>
+
+                <form action="javascript:updateDefaultUserSafety()">
+                    <label>Default User Safety Settings:</label>
+                    <br>
+                    <table class="user-safety-table">
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Toxic</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Content that is rude, disrespectful, or unreasonable.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Derogatory</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Negative or harmful comments targeting identity and/or protected attributes.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Violent</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Describes scenarios depicting violence against an individual or group, or general descriptions of gore.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Sexual</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Contains references to sexual acts or other lewd content.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Insult</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Insulting, inflammatory, or negative comment towards a person or a group of people.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Profanity</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Obscene or vulgar language such as cursing.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Death, Harm & Tragedy</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Human deaths, tragedies, accidents, disasters, and self-harm.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Firearms & Weapons</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Content that mentions knives, guns, personal weapons, and accessories such as ammunition, holsters, etc.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Public Safety</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Services and organizations that provide relief and ensure public safety.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Health</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Human health, including: Health conditions, diseases, and disorders Medical therapies, medication, vaccination, medical practices, and resources for healing, including support groups.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Religion & Belief</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Belief systems that deal with the possibility of supernatural laws and beings; religion, faith, belief, spiritual practice, churches, and places of worship. Includes astrology and the occult.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Illicit Drugs</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Recreational and illicit drugs; drug paraphernalia and cultivation, headshops, etc. Includes medicinal use of drugs typically used recreationally (e.g. marijuana).</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">War & Conflict</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">War, military conflicts, and major physical conflicts involving large numbers of people. Includes discussion of military services, even if not directly related to a war or conflict.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Finance</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Consumer and business financial services, such as banking, loans, credit, investing, and insurance.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Politics</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Political news and media; discussions of social, governmental, and public policy.</td>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" onclick="safetySettingState()"></td>
+                            <td class="attribute">Legal</td>
+                            <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                            <td class="desc">Law-related content, including law firms, legal information, primary legal materials, paralegal services, legal publications and technology, expert witnesses, litigation consultants, and other legal service providers.</td>
+                        </tr>
+                    </table>
+                    <button type="submit">Update</button>
+                </form>
+            </div>
+
+            <div id="view-invoices">
                 <h2>Invoices</h2>
                 <ul id="account-invoices"></ul>
             </div>

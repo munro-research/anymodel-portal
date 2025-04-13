@@ -2,6 +2,7 @@
 
 const PREFIX = "portal"
 const LOG_OUT_URL = "/portal/";
+const ANYMODEL_BASE_URL = "http://localhost:5500";
 
 var credentials = null;
 var privilege = null;

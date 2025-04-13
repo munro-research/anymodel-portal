@@ -1,3 +1,15 @@
 #logged-in, .admin, .org-admin {
     display:none;
 }
+
+.user-safety-table .disabled {
+    background-color: rgb(245, 245, 245);
+}
+
+.user-safety-table .attribute {
+    font-weight: 600;
+}
+
+.user-safety-table .desc {
+    font-style: italic;
+}

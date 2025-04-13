@@ -110,9 +110,17 @@ async function getUsersReferredBy(id) {
     return await users.find({referredBy: id}).toArray();
 }
 
+async function getUserStates(id) {
+    await client.connect();
+    const states = client.db(process.env.DATABASE_NAME).collection(process.env.STATE_COLLECTION);
+
+    return await states.find({user: id}).toArray();
+}
+
 module.exports = {
     getUser, replaceUser, saveNewUser, deleteUser, getUsers,
     getMetrics, getUsersReferredBy, 
     getAccount, saveNewAccount, replaceAccount, getAccounts, deleteAccountAndUsers,
-    calculateAccountCreditSpend
+    calculateAccountCreditSpend,
+    getUserStates,
 }
