@@ -60,6 +60,7 @@ function populateUser(user) {
     document.getElementById("user-id").innerHTML = user._id;
     document.getElementById("user-username").innerHTML = user.username;
     document.getElementById("user-email").innerHTML = user.email;
+    document.getElementById("user-account").innerHTML = user.email = user.account ? `<a href="/${PREFIX}/account.html?name=${user.account}">${user.account}</a>` : "n/a"
     document.getElementById("user-signup-date").innerHTML = new Date(user.signUpDate).toLocaleString();
     document.getElementById("user-last-used").innerHTML = new Date(user.lastUsed).toLocaleString();
     document.getElementById("user-privilege").innerHTML = user.privilege;
@@ -79,18 +80,22 @@ function populateUser(user) {
         }
     }
 
-    if (user.quota) {
-        document.getElementById("override-quota").checked = true;
-        document.getElementById("user-quota").value = Number(user.quota);
-    } else document.getElementById("override-quota").checked = false;
-
-    setSafetySettingState(user.safetySettings);
-
-    if (user.safetySettings) {
-        document.getElementById("override-safety").checked = true;
-    } else document.getElementById("override-safety").checked = false;
-
-    userOverrides();
+    if (user.account) {
+        if (user.quota) {
+            document.getElementById("override-quota").checked = true;
+            document.getElementById("user-quota").value = Number(user.quota);
+        } else document.getElementById("override-quota").checked = false;
+    
+        setSafetySettingState(user.safetySettings);
+    
+        if (user.safetySettings) {
+            document.getElementById("override-safety").checked = true;
+        } else document.getElementById("override-safety").checked = false;
+    
+        userOverrides();
+    } else {
+        document.getElementById("user-settings").style.display = "none";
+    }
 }
 
 function populatePrompts(prompts) {
