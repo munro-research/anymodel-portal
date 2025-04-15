@@ -26,6 +26,19 @@ body {
     width: 50%;
 }
 
+.create-form {
+    max-width: 50em;
+}
+
+.details-table {
+    max-width: 50em;
+}
+
+.details-table th {
+    min-width: none;
+    width: fit-content;
+}
+
 button {
   appearance: none;
   background-color: #2ea44f;
