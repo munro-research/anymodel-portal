@@ -6,31 +6,41 @@
         <!-- Font awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
 
+        <link rel="stylesheet" href="https://unpkg.com/nice-forms.css@0.1.7/dist/nice-forms.css" />
         <link rel="stylesheet" href="style.css">
         <script src="init.js"></script>
         <script src="index.js"></script>
     </head>
 
-    <body onload="init()">
-        <h1>AnyModel Portal</h1>
-
+    <body class="light" onload="init()">
         <div id="logged-out" >
             <form id="log-in-form" action="javascript:login()">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" placeholder="name@example.com">
-                <br>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password">
-                <br>
-                <button type="button" onclick="window.location = LOG_OUT_URL;">Home</button>
-                <button type="submit">Log In</button>
+                <h1>AnyModel Portal</h1>
+                <div class="nice-form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="name@example.com">
+                </div>
+                
+                <div class="nice-form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password">
+                </div>
+
+                <div class="nice-form-group">
+                    <button type="submit">Log In</button>
+                </div>
             </form>
         </div>
 
         <div id="logged-in">
-            <p id="logged-in-msg"></p>
-            <button onclick="window.location = LOG_OUT_URL;">Home</button>
-<button onclick="logout()">Log Out</button>
+            <div id="account-area">
+                <h1>AnyModel Portal</h1>
+                <p id="logged-in-msg"></p>
+                <div id="nice-form-group">
+                    <button onclick="window.location = LOG_OUT_URL;">Home</button>
+                    <button onclick="logout()">Log Out</button>
+                </div>
+            </div>
 
             <div id="billing" class="org-admin">
                 <h2>Billing</h2>
@@ -43,37 +53,45 @@
             <div id="create-account" class="admin">
                 <h2>Create Account</h2>
                 <form action="javascript:createAccount()">
-                    <label for="new-email">Name:</label>
-                    <input type="text" id="new-account-name" name="new-account-name" placeholder="Example Ltd">
-                    <br>
+                    <div class="nice-form-group" >
+                        <label for="new-account-name">Name:</label>
+                        <input type="text" id="new-account-name" name="new-account-name" placeholder="Example Ltd">
+                    </div>
 
-                    <label for="billing">Billing Email:</label>
-                    <input type="email" id="billing-email" name="billing-email" placeholder="name@example.com">
-                    <br>
+                    <div class="nice-form-group" >
+                        <label for="billing-email">Billing Email:</label>
+                        <input type="email" id="billing-email" name="billing-email" placeholder="name@example.com">
+                    </div>
 
-                    <label for="monthly-min-spend">Monthly Minimum Spend:</label>
-                    <input type="number" id="monthly-min-spend" name="monthly-min-spend" value="0">
+                    <div class="nice-form-group" >
+                        <label for="monthly-min-spend">Monthly Minimum Spend:</label>
+                        <input type="number" id="monthly-min-spend" name="monthly-min-spend" value="0">
 
-                    <input type="radio" id="total-min-spend" name="min-spend-mode" value="account-total" checked>
-                    <label for="html">Total</label>
-                    <input type="radio" id="per-seat-min-spend" name="min-spend-mode" value="per-seat">
-                    <label for="css">Per Seat</label>
-                    <br>
+                        <input type="radio" id="total-min-spend" name="min-spend-mode" value="account-total" checked>
+                        <label for="html">Total</label>
+                        <input type="radio" id="per-seat-min-spend" name="min-spend-mode" value="per-seat">
+                        <label for="css">Per Seat</label>
+                    </div>
 
-                    <label for="account-plans">Plan:</label>
-                    <select name="account-plans" id="account-plans">
-                        <option value="plan3-stripe-invoice">Plan 3 - Unlimited (stripe invoice)</option>
-                        <option value="plan3-manual">Plan 3 - Unlimited (manual)</option>
-                    </select> 
-                    <br>
+                    <div class="nice-form-group" >
+                        <label for="account-plans">Plan:</label>
+                        <select name="account-plans" id="account-plans">
+                            <option value="plan3-stripe-invoice">Plan 3 - Unlimited (stripe invoice)</option>
+                            <option value="plan3-manual">Plan 3 - Unlimited (manual)</option>
+                        </select> 
+                    </div>
 
-                    <button type="submit">Create</button>
+                    <div class="nice-form-group" >
+                        <button type="submit">Create</button>
+                    </div>
                 </form>
             </div>
             
             <div id="accounts" class="admin">
                 <h2>Accounts</h2>
-                <input type="text" id="account-search" onkeyup="searchTwoColumns('account-search', 'account-table')" placeholder="Search by names or email">
+                <div class="nice-form-group" >
+                    <input type="text" id="account-search" onkeyup="searchTwoColumns('account-search', 'account-table')" placeholder="Search by names or email">
+                </div>
                 <table id="account-table">
                     <thead>
                         <tr>
@@ -102,49 +120,57 @@
             <div id="create-user" class="admin org-admin">
                 <h2>Create User</h2>
                 <form action="javascript:createUser()">
-                    <label for="new-email">Email:</label>
-                    <input type="email" id="new-email" name="new-email" placeholder="name@example.com">
-                    <br>
-
-                    <label for="new-password">Password:</label>
-                    <input type="text" id="new-password" name="new-password" placeholder="password123">
-                    <br>
-
-                    <label id="plans-label" for="plans">Plan:</label>
                     
-                    <div id="plan-selection">
+                    <div class="nice-form-group" >
+                        <label for="new-email">Email:</label>
+                        <input type="email" id="new-email" name="new-email" placeholder="name@example.com">
+                    </div>
+
+                    <div class="nice-form-group" >
+                        <label for="new-password">Password:</label>
+                        <input type="text" id="new-password" name="new-password" placeholder="password123">
+                    </div>
+
+                    <div class="nice-form-group" id="plan-selection">
+                        <label id="plans-label" for="plans">Plan:</label>
+                        
                         <select name="plans" id="plans">
                             <option value="trial" selected>Trial</option>
                             <option value="plan1-extended-trial">Plan 1 - Starter (extended trial)</option>
                             <option value="plan2-extended-trial">Plan 2 - Plus (extended trial)</option>
                             <option value="plan3-manual">Plan 3 - Unlimited (manual)</option>
                         </select> 
-                        <strong>OR</strong>
-                        <br>
                     </div>
 
-                    <label for="new-account">Organisation (blank for none):</label>
-                    <input type="text" id="new-account" name="new-account" placeholder="">
-                    <br>
+                    <div class="nice-form-group" >
+                        <label for="new-account"><strong>OR</strong> Organisation (blank for none):</label>
+                        <input type="text" id="new-account" name="new-account" placeholder="">
+                    </div>
 
-                    <select name="new-privilege" id="new-privilege">
-                        <option value="null" selected>Normal</option>
-                        <option value="org-admin">Organisation Admin</option>
-                        <option value="admin">Admin</option>
-                    </select> 
-                    <br>
+                    <div class="nice-form-group" >
+                        <select name="new-privilege" id="new-privilege">
+                            <option value="null" selected>Normal</option>
+                            <option value="org-admin">Organisation Admin</option>
+                            <option value="admin">Admin</option>
+                        </select> 
+                    </div>
 
-                    <label for="change-password">Change password on first login?</label>
-                    <input type="checkbox" id="change-password" name="change-password" value="change-password">
-                    <br>
+                    <div class="nice-form-group" >
+                        <label for="change-password">Change password on first login?
+                        <input type="checkbox" id="change-password" name="change-password" value="change-password"></label>
+                    </div>
 
-                    <button type="submit">Create</button>
+                    <div class="nice-form-group" >
+                        <button type="submit">Create</button>
+                    </div>
                 </form>
             </div>
 
             <div id="users">
                 <h2>Users</h2>
-                <input type="text" id="user-search" onkeyup="searchTwoColumns('user-search', 'user-table')" placeholder="Search by username or email">
+                <div class="nice-form-group" >
+                    <input type="text" id="user-search" onkeyup="searchTwoColumns('user-search', 'user-table')" placeholder="Search by username or email">
+                </div>
                 <table id="user-table">
                     <thead>
                         <tr>
@@ -172,5 +198,9 @@
                 </table>
             </div>
         </div>
+
+        <footer>
+            <p>Copyright © 2025 <a href="https://www.munro-research.com">Munro Research Limited</a>.</p>
+        </footer>
     </body>
 </html>

@@ -6,73 +6,90 @@
         <!-- Font awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
 
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="https://unpkg.com/nice-forms.css@0.1.7/dist/nice-forms.css" />
+<link rel="stylesheet" href="style.css">
         <script src="init.js"></script>
         <script src="user.js"></script>
         <script src="safetyTable.js"></script>
     </head>
 
-    <body onload="init()">
-        <h1>AnyModel Portal</h1>
-
+    <body class="light" onload="init()">
         <div id="logged-out" >
             <form id="log-in-form" action="javascript:login()">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" placeholder="name@example.com">
-                <br>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password">
-                <br>
-                <button type="button" onclick="window.location = LOG_OUT_URL;">Home</button>
-                <button type="submit">Log In</button>
+                <h1>AnyModel Portal</h1>
+                <div class="nice-form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="name@example.com">
+                </div>
+                
+                <div class="nice-form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password">
+                </div>
+
+                <div class="nice-form-group">
+                    <button type="submit">Log In</button>
+                </div>
             </form>
         </div>
 
         <div id="logged-in">
-            <p id="logged-in-msg"></p>
-            <button onclick="window.location = LOG_OUT_URL;">Home</button>
-            <button onclick="logout()">Log Out</button>
+            <div id="account-area">
+                <h1>AnyModel Portal</h1>
+                <p id="logged-in-msg"></p>
+                <div id="nice-form-group">
+                    <button onclick="window.location = LOG_OUT_URL;">Home</button>
+                    <button onclick="logout()">Log Out</button>
+                </div>
+            </div>
 
             <div id="view-user">
                 <h2>User Details</h2>
-                <p><strong>ID:</strong> <span id="user-id"></span></p>
-                <p><strong>Username:</strong> <span id="user-username"></span></p>
-                <p><strong>Email:</strong> <span id="user-email"></span></p>
-                <p><strong>Organisation:</strong> <span id="user-account"></span></p>
-                <p><strong>Sign Up Date:</strong> <span id="user-signup-date"></span></p>
-                <p><strong>Last Used:</strong> <span id="user-last-used"></span></p>
-                <p><strong>Privilege:</strong> <span id="user-privilege"></span></p>
-                <p><strong>Banned:</strong> <span id="user-banned"></span></p>
-                <p class="admin"><strong>Plan:</strong> <span id="user-plan"></span></p>
-                <p class="admin"><strong>Payment Service:</strong> <span id="user-payment-service"></span></p>
-                <p class="admin"><strong>Status:</strong> <span id="user-status"></span></p>
-                <p class="admin"><strong>Renew Date:</strong> <span id="user-renew-date"></span></p>
-                <p class="admin"><strong>Analytics Consent:</strong> <span id="user-analytics-consent"></span></p>
-                <p class="admin"><strong>Email Consent:</strong> <span id="user-email-consent"></span></p>
-                <p><strong id="credits-msg">Credits Used:</strong> <span id="user-credits"></span></p>
+                <table>
+                    <tr><th>ID:</th><td id="user-id"></td></tr>
+                    <tr><th>Username:</th><td id="user-username"></td></tr>
+                    <tr><th>Email:</th><td id="user-email"></td></tr>
+                    <tr><th>Organisation:</th><td id="user-account"></td></tr>
+                    <tr><th>Sign Up Date:</th><td id="user-signup-date"></td></tr>
+                    <tr><th>Last Used:</th><td id="user-last-used"></td></tr>
+                    <tr><th>Privilege:</th><td id="user-privilege"></td></tr>
+                    <tr><th>Banned:</th><td id="user-banned"></td></tr>
+                    <tr class="admin-row"><th>Plan:</th><td id="user-plan"></td></tr>
+                    <tr class="admin-row"><th>Payment Service:</th><td id="user-payment-service"></td></tr>
+                    <tr class="admin-row"><th>Status:</th><td id="user-status"></td></tr>
+                    <tr class="admin-row"><th>Renew Date:</th><td id="user-renew-date"></td></tr>
+                    <tr class="admin-row"><th>Analytics Consent:</th><td id="user-analytics-consent"></td></tr>
+                    <tr class="admin-row"><th>Email Consent:</th><td id="user-email-consent"></td></tr>
+                    <tr class="admin-row"><th id="credits-msg">Credits Used:</th><td id="user-credits"></td></tr>
+                </table>
             </div>
 
             <div id="user-settings">
                 <h2>User Settings</h2>
                 <form action="javascript:updateUserQuota()">
-                    <label for="override-quota">Override account default</label>
-                    <input type="checkbox" id="override-quota" onclick="userOverrides()">
-                    <br>
+                    <div class="nice-form-group">
+                        <label for="override-quota">Override account default</label>
+                        <input type="checkbox" id="override-quota" onclick="userOverrides()">
+                    </div>
 
-                    <div id="user-quota-settings">
+                    <div class="nice-form-group" id="user-quota-settings">
                         <label for="user-quota">User Quota:</label>
                         <input type="number" id="user-quota" name="user-quota">
                     </div>
 
-                    <button type="submit">Update</button>
+                    <div class="nice-form-group">
+                        <button type="submit">Update</button>
+                    </div>
+                    
                 </form>
 
                 <form action="javascript:updateUserSafety()">
-                    <label for="override-safety">Override account default</label>
-                    <input type="checkbox" id="override-safety" onclick="userOverrides()">
-                    <br>
+                    <div class="nice-form-group">
+                        <label for="override-safety">Override account default</label>
+                        <input type="checkbox" id="override-safety" onclick="userOverrides()">
+                    </div>
 
-                    <div id="user-safety-settings">
+                    <div class="nice-form-group" id="user-safety-settings">
                         <label>User Safety Settings:</label>
                         <br>
                         <table class="user-safety-table">
@@ -174,14 +191,19 @@
                             </tr>
                         </table>
                     </div>
-                    
-                    <button type="submit">Update</button>
+
+                    <div class="nice-form-group">
+                        <button class="user-safety-table" type="submit">Update</button>
+                    </div>
                 </form>
             </div>
 
             <div id="recent-prompts">
                 <h2>Recent Prompts</h2>
-                <input type="text" id="prompt-search" onkeyup="searchPrompts()" placeholder="Search by prompt">
+                <div class="nice-form-group">
+                    <input type="text" id="prompt-search" onkeyup="searchPrompts()" placeholder="Search by prompt">
+                </div>
+                
                 <table id="recent-prompts-table">
                     <thead>
                         <th>Date</th>
@@ -196,5 +218,9 @@
                 </table>
             </div>
         </div>
+
+        <footer>
+            <p>Copyright © 2025 <a href="https://www.munro-research.com">Munro Research Limited</a>.</p>
+        </footer>
     </body>
 </html>
