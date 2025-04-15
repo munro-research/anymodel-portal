@@ -18,6 +18,10 @@ async function initAccount() {
                 for (const elem of document.getElementsByClassName("admin")) {
                     elem.style.display = "block";
                 }
+
+                for (const elem of document.getElementsByClassName("admin-row")) {
+                    elem.style.display = "table-row";
+                }
             }
         } catch(err) {
             console.log(err);
