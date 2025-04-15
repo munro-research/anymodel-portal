@@ -85,8 +85,8 @@ async function populateUsers() {
         }
 
         rows += `<td>${user.credits}</td>
-            <td>${user.banned ? `<i onclick="unbanUser('${user.email}')" class="fa-solid fa-user-check"></i>` : `<i onclick="banUser('${user.email}')" class="fa-solid fa-ban"></i>`}</td>
-            <td><i onclick="deleteUser('${user.email}')" class="fa-solid fa-trash"></i></td>`;
+            <td>${user.banned ? `<i onclick="unbanUser('${user.email}')" class="fa-solid fa-user-check ui-icon"></i>` : `<i onclick="banUser('${user.email}')" class="fa-solid fa-ban ui-icon"></i>`}</td>
+            <td><i onclick="deleteUser('${user.email}')" class="fa-solid fa-trash ui-icon"></i></td>`;
 
         table.innerHTML += `<tr data-account-email="${user.email}">${rows}</tr>`;
     }
@@ -119,9 +119,9 @@ async function populateAccounts() {
             <td><a href="https://dashboard.stripe.com/customers/${account.customerId}">Stripe</a></td>
             <td>${account.invoices.length > 1 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 2]}">Previous</a>` : ""}</td>
             <td>${account.invoices.length > 0 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 1]}">Latest</a>` : ""}</td>
-            <td>${account.subscriptionStatus == "active" ? `<i onclick="cancelAccount('${account.name}')" class="fa-solid fa-xmark"></i>` : `<i onclick="activateAccount('${account.name}')" class="fa-solid fa-check"></i>`}</td>
-            <td><i onclick="generateInvoice('${account.name}')" class="fa-solid fa-file-invoice-dollar"></i></td>
-            <td><i onclick="deleteAccount('${account.name}')" class="fa-solid fa-trash"></i></td>
+            <td>${account.subscriptionStatus == "active" ? `<i onclick="cancelAccount('${account.name}')" class="fa-solid fa-xmark ui-icon"></i>` : `<i onclick="activateAccount('${account.name}')" class="fa-solid fa-check ui-icon"></i>`}</td>
+            <td><i onclick="generateInvoice('${account.name}')" class="fa-solid fa-file-invoice-dollar ui-icon"></i></td>
+            <td><i onclick="deleteAccount('${account.name}')" class="fa-solid fa-trash ui-icon"></i></td>
         </tr>`
     }
 }

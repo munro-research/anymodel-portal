@@ -39,6 +39,14 @@ body {
     width: fit-content;
 }
 
+.ui-icon {
+    cursor: pointer;
+}
+
+.ui-icon:hover {
+    scale: 1.1;
+}
+
 button {
   appearance: none;
   background-color: #2ea44f;
