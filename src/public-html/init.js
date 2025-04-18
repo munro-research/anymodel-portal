@@ -93,3 +93,22 @@ async function processLogin(email, password) {
         return json.error;
     }
 }
+
+async function populateUsage(accountName) {
+    let response = await fetch(`/${PREFIX}/usage`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, accountName})
+    });
+
+    let info = await response.json();
+
+    document.getElementById("credit-spend").innerHTML = info.creditSpend;
+    document.getElementById("dollar-spend").innerHTML = `$${info.dollarSpend}`;
+    document.getElementById("seats").innerHTML = info.seats;
+    document.getElementById("min-spend").innerHTML = `$${info.minSpend}`;
+    document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toDateString();
+}

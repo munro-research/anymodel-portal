@@ -55,7 +55,6 @@ function populateAccount(account) {
     document.getElementById("account-status").innerHTML = account.subscriptionStatus;
     document.getElementById("account-min-spend").innerHTML = account.minSpendUSD ? account.minSpendUSD : "n/a"
     document.getElementById("account-min-spend-per-seat").innerHTML = account.minSpendPerSeatUSD ? account.minSpendPerSeatUSD : "n/a"
-    document.getElementById("account-renew-date").innerHTML = new Date(account.renewDate * 1000).toLocaleString();
 
     let invoices = "";
     
@@ -65,26 +64,10 @@ function populateAccount(account) {
 
     document.getElementById("account-invoices").innerHTML = invoices;
 
-    billingInfo(account.name);
+    populateUsage(account.name);
 
     document.getElementById("default-user-quota").value = account.defaultUserQuota;
     setSafetySettingState(account.defaultSafetySettings);
-}
-
-async function billingInfo(accountName) {
-    let response = await fetch(`/${PREFIX}/usage`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials, accountName})
-    });
-
-    let info = await response.json();
-
-    document.getElementById("account-total-credit-spend").innerHTML = info.creditSpend;
-    document.getElementById("account-seats").innerHTML = info.seats;
 }
 
 async function updateDefaultUserQuota() {
