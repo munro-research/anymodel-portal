@@ -43,10 +43,33 @@
             </div>
 
             <div id="billing" class="org-admin">
-                <h2>Billing</h2>
-                <p><strong>Seats:</strong> <span id="seats"></span></p>
-                <p><strong>Credit Spend:</strong> <span id="credit-spend"></span></p>
-                <p><strong>Renew Date:</strong> <span id="renew-date"></span></p>
+                <h2>Account Usage</h2>
+                <div class="usage-container">
+                    <div class="usage-widget">
+                        <h3 class="name">Seats</h3>
+                        <p id="seats" class="value blue"></p>
+                    </div>
+
+                    <div class="usage-widget">
+                        <h3 class="name">Credit Spend</h3>
+                        <p id="credit-spend" class="value red"></p>
+                    </div>
+
+                    <div class="usage-widget">
+                        <h3 class="name">Dollar Spend</h3>
+                        <p id="dollar-spend" class="value green"></p>
+                    </div>
+                    
+                    <div class="usage-widget">
+                        <h3 class="name">Min Spend</h3>
+                        <p id="min-spend" class="value purple"></p>
+                    </div>
+
+                    <div class="usage-widget">
+                        <h3 class="name">Renew Date</h3>
+                        <p id="renew-date" class="value orange"></p>
+                    </div>
+                </div>
                 <p><a id="view-account-link" href="#">View Account</a></p>
             </div>
 

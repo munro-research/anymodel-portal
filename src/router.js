@@ -556,10 +556,25 @@ router.post("/usage", async (req, res) => {
             if (user.privilege == "admin" || (user.privilege == "org-admin" && user.account == account.name)) {
                 let {creditSpend, seats} = await database.calculateAccountCreditSpend(accountName);
 
+                let anyModelOptions = await getAnyModelOptions();
+
+                let spendUSD = creditSpend > 0 ?
+                    Math.ceil((creditSpend / anyModelOptions.plans.plan3.creditsPerDollar) * 100) / 100 : 0;
+
+                let minSpendUSD = 0;
+                if (account.minSpendUSD) minSpendUSD = account.minSpendUSD;
+                if (account.minSpendPerSeatUSD) {
+                    minSpendUSD = account.minSpendPerSeatUSD * seats;
+                }
+
                 res.status(200).json({
                     renewDate: account.renewDate,
                     creditSpend: creditSpend,
+                    dollarSpend: spendUSD,
                     seats: seats,
+                    minSpend: minSpendUSD,
+                    renewDate:account.renewDate,
+
                 });
             } else throw new Error("User lacks permission")
         } else throw new Error("Account not found");

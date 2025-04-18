@@ -138,6 +138,64 @@ tbody {
     font-style: italic;
 }
 
+.usage-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 1em;
+    row-gap: 1em;
+}
+
+.usage-widget {
+    --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+
+    border-radius: 1em;
+
+    width: 18em;
+    height: 7em;
+
+    padding: 1em;
+
+    display: flex;
+    flex-direction: column;
+
+    background-color: rgb(255 255 255 / 1);
+}
+
+.usage-widget:hover {
+    scale: 1.05;
+    --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.usage-widget .value {
+    font-size: 2em;
+    margin: 0;
+}
+
+.usage-widget .value.red {
+    color: red;
+}
+
+.usage-widget .value.green {
+    color: green;
+}
+
+.usage-widget .value.blue {
+    color: blue;
+}
+
+.usage-widget .value.orange {
+    color: orange;
+}
+
+.usage-widget .value.purple {
+    color: purple;
+}
+
 footer {
     text-align: center;
 }

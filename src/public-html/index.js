@@ -23,29 +23,11 @@ async function initIndex() {
 
         document.getElementById("new-privilege").style.display = "none";
         
-        await billingInfo();
+        await populateUsage(accountName);
+        document.getElementById("view-account-link").href = `/${PREFIX}/account.html?name=${accountName}`;
     }
 
     await populateUsers();
-}
-
-async function billingInfo() {
-    let response = await fetch(`/${PREFIX}/usage`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credentials, accountName})
-    });
-
-    let info = await response.json();
-
-    document.getElementById("seats").innerHTML = info.seats;
-    document.getElementById("credit-spend").innerHTML = info.creditSpend;
-    document.getElementById("renew-date").innerHTML = new Date(info.renewDate * 1000).toLocaleString();
-
-    document.getElementById("view-account-link").href = `/${PREFIX}/account.html?name=${accountName}`;
 }
 
 async function populateUsers() {
