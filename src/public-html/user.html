@@ -1,0 +1,226 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>AnyModel Portal</title>
+
+        <!-- Font awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> 
+
+        <link rel="stylesheet" href="https://unpkg.com/nice-forms.css@0.1.7/dist/nice-forms.css" />
+<link rel="stylesheet" href="style.css">
+        <script src="init.js"></script>
+        <script src="user.js"></script>
+        <script src="safetyTable.js"></script>
+    </head>
+
+    <body class="light" onload="init()">
+        <div id="logged-out" >
+            <form id="log-in-form" action="javascript:login()">
+                <h1>AnyModel Portal</h1>
+                <div class="nice-form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="name@example.com">
+                </div>
+                
+                <div class="nice-form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password">
+                </div>
+
+                <div class="nice-form-group">
+                    <button type="submit">Log In</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="logged-in">
+            <div id="account-area">
+                <h1>AnyModel Portal</h1>
+                <p id="logged-in-msg"></p>
+                <div id="nice-form-group">
+                    <button onclick="window.location = LOG_OUT_URL;">Home</button>
+                    <button onclick="logout()">Log Out</button>
+                </div>
+            </div>
+
+            <div id="view-user">
+                <h2>User Details</h2>
+                <table class="details-table">
+                    <tr><th>ID:</th><td id="user-id"></td></tr>
+                    <tr><th>Username:</th><td id="user-username"></td></tr>
+                    <tr><th>Email:</th><td id="user-email"></td></tr>
+                    <tr><th>Organisation:</th><td id="user-account"></td></tr>
+                    <tr><th>Sign Up Date:</th><td id="user-signup-date"></td></tr>
+                    <tr><th>Last Used:</th><td id="user-last-used"></td></tr>
+                    <tr><th>Privilege:</th><td id="user-privilege"></td></tr>
+                    <tr><th>Banned:</th><td id="user-banned"></td></tr>
+                    <tr class="admin-row"><th>Plan:</th><td id="user-plan"></td></tr>
+                    <tr class="admin-row"><th>Payment Service:</th><td id="user-payment-service"></td></tr>
+                    <tr class="admin-row"><th>Status:</th><td id="user-status"></td></tr>
+                    <tr class="admin-row"><th>Renew Date:</th><td id="user-renew-date"></td></tr>
+                    <tr class="admin-row"><th>Analytics Consent:</th><td id="user-analytics-consent"></td></tr>
+                    <tr class="admin-row"><th>Email Consent:</th><td id="user-email-consent"></td></tr>
+                    <tr class="admin-row"><th id="credits-msg">Credits Used:</th><td id="user-credits"></td></tr>
+                </table>
+            </div>
+
+            <div id="user-settings">
+                <h2>User Settings</h2>
+                <form action="javascript:updateUserQuota()">
+                    <div class="nice-form-group">
+                        <label for="override-quota">Override account default</label>
+                        <input type="checkbox" id="override-quota" onclick="userOverrides()">
+                    </div>
+
+                    <div class="nice-form-group" id="user-quota-settings">
+                        <label for="user-quota">User Quota:</label>
+                        <input type="number" id="user-quota" name="user-quota">
+                    </div>
+
+                    <div class="nice-form-group">
+                        <button type="submit">Update</button>
+                    </div>
+                    
+                </form>
+
+                <form action="javascript:updateUserSafety()">
+                    <div class="nice-form-group">
+                        <label for="override-safety">Override account default</label>
+                        <input type="checkbox" id="override-safety" onclick="userOverrides()">
+                    </div>
+
+                    <div class="nice-form-group" id="user-safety-settings">
+                        <label>User Safety Settings:</label>
+                        <br>
+                        <table class="user-safety-table">
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Toxic</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Content that is rude, disrespectful, or unreasonable.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Derogatory</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Negative or harmful comments targeting identity and/or protected attributes.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Violent</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Describes scenarios depicting violence against an individual or group, or general descriptions of gore.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Sexual</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Contains references to sexual acts or other lewd content.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Insult</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Insulting, inflammatory, or negative comment towards a person or a group of people.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Profanity</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Obscene or vulgar language such as cursing.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Death, Harm & Tragedy</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Human deaths, tragedies, accidents, disasters, and self-harm.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Firearms & Weapons</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Content that mentions knives, guns, personal weapons, and accessories such as ammunition, holsters, etc.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Public Safety</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Services and organizations that provide relief and ensure public safety.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Health</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Human health, including: Health conditions, diseases, and disorders Medical therapies, medication, vaccination, medical practices, and resources for healing, including support groups.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Religion & Belief</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Belief systems that deal with the possibility of supernatural laws and beings; religion, faith, belief, spiritual practice, churches, and places of worship. Includes astrology and the occult.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Illicit Drugs</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Recreational and illicit drugs; drug paraphernalia and cultivation, headshops, etc. Includes medicinal use of drugs typically used recreationally (e.g. marijuana).</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">War & Conflict</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">War, military conflicts, and major physical conflicts involving large numbers of people. Includes discussion of military services, even if not directly related to a war or conflict.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Finance</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Consumer and business financial services, such as banking, loans, credit, investing, and insurance.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Politics</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Political news and media; discussions of social, governmental, and public policy.</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" onclick="safetySettingState()"></td>
+                                <td class="attribute">Legal</td>
+                                <td><INPUT TYPE="number" MIN="0" MAX="1" STEP="0.05" VALUE="0.55"></td>
+                                <td class="desc">Law-related content, including law firms, legal information, primary legal materials, paralegal services, legal publications and technology, expert witnesses, litigation consultants, and other legal service providers.</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="nice-form-group">
+                        <button class="user-safety-table" type="submit">Update</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="recent-prompts">
+                <h2>Recent Prompts</h2>
+                <div class="nice-form-group">
+                    <input type="text" id="prompt-search" onkeyup="searchPrompts()" placeholder="Search by prompt">
+                </div>
+                
+                <table id="recent-prompts-table">
+                    <thead>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>State</th>
+                        <th>Prompt</th>
+                    </thead>
+
+                    <tbody id="recent-prompts-body">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            <p>Copyright © 2025 <a href="https://www.munro-research.com">Munro Research Limited</a>.</p>
+        </footer>
+    </body>
+</html>

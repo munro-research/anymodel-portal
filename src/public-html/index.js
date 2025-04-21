@@ -1,120 +1,195 @@
 //2025 Munro Research Limited, All rights reserved
 
-const PREFIX = "portal"
+async function initIndex() {
+    if (privilege == "admin") {
+        for (const elem of document.getElementsByClassName("admin")) {
+            elem.style.display = "block";
+        }
 
-var credentials = null;
-var privilege = null;
-var metrics = null;
+        populateAccounts();
+    } else if (privilege == "org-admin") {
+        for (const elem of document.getElementsByClassName("org-admin")) {
+            elem.style.display = "block";
+        }
 
-async function init() {
-    let item = localStorage.getItem('credentials');
-    if (item) {
-        let loadedCredentials = JSON.parse(item);
-        await processLogin(loadedCredentials.email, loadedCredentials.password);
+        document.querySelectorAll(".admin-table").forEach(e => e.remove());
+
+        document.getElementById("plans").innerHTML = `<option value="sub-account" selected>Sub account</option>`
+        document.getElementById("plan-selection").style.display = "none";
+
+        const org = document.getElementById("new-account");
+        org.readOnly = true;
+        org.value = accountName;
+
+        document.getElementById("new-privilege").style.display = "none";
+        
+        await populateUsage(accountName);
+        document.getElementById("view-account-link").href = `/${PREFIX}/account.html?name=${accountName}`;
     }
+
+    await populateUsers();
 }
 
-async function postLogin() {
-    metrics = await getMetrics();
-    drawGraphs();
-}
-
-async function logout() {
-    localStorage.removeItem('credentials');
-    window.location = "/"
-}
-
-async function login() {
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
-
-    let error = await processLogin(email, password);
-    if (error) {
-        alert(error);
-    }
-}
-
-async function processLogin(email, password) {
-    let response = await fetch(`/${PREFIX}/login`, {
+async function populateUsers() {
+    let response = await fetch(`/${PREFIX}/get-users`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials: {email, password}})
+        body: JSON.stringify({credentials})
     });
 
-    let json = await response.json();
+    let result = await response.json();
+    const table = document.getElementById("user-table-body");
+    table.innerHTML = "";
 
-    if (response.status == 200) {
-        credentials = {email, password};
-        privilege = json.privilege;
+    for (const user of result.users) {
+        let rows = "";
 
-        document.getElementById("logged-out").style.display = "none";
-        document.getElementById("logged-in").style.display = "block";
-        document.getElementById("logged-in-msg").innerHTML = `Logged in as ${credentials.email} (${privilege})`;
+        rows += `<td><a href="/${PREFIX}/user.html?email=${user.email}">${user.username}</a></td>
+            <td>${user.email}</td>`
 
-        localStorage.setItem('credentials', JSON.stringify(credentials));
+        if (privilege == "admin") rows += `<td>${user.account ? `<a href="/${PREFIX}/account.html?name=${user.account}">${user.account}</a>` : "n/a"}</td>`;
 
-        postLogin();
+        rows += `<td>${new Date(user.signUpDate).toLocaleDateString()}</td>
+            <td>${new Date(user.lastUsed).toLocaleDateString()}</td>
+            <td>${user.privilege ? user.privilege : "n/a"}</td>
+            <td>${user.banned === true ? "YES" : "NO"}</td>`
 
-        return null;
-    } else {
-        localStorage.removeItem('credentials');
-        return json.error;
+        if (privilege == "admin") {
+            rows += `<td>${user.emailConsent}</td>
+                <td>${user.analyticsConsent}</td>
+                <td>${user.plan}</td>
+                <td>${user.subscriptionStatus}</td>
+                <td>${new Date(user.renewDate * 1000).toLocaleDateString()}</td>
+                <td>${user.paymentService == "Stripe" ? `<a href="https://dashboard.stripe.com/customers/${user.customerId}">Stripe</a>` : user.paymentService}</td>`;
+        }
+
+        rows += `<td>${user.credits}</td>
+            <td>${user.banned ? `<i onclick="unbanUser('${user.email}')" class="fa-solid fa-user-check ui-icon"></i>` : `<i onclick="banUser('${user.email}')" class="fa-solid fa-ban ui-icon"></i>`}</td>
+            <td><i onclick="deleteUser('${user.email}')" class="fa-solid fa-trash ui-icon"></i></td>`;
+
+        table.innerHTML += `<tr data-account-email="${user.email}">${rows}</tr>`;
     }
 }
 
-async function viewUser() {
-    let userEmail = document.getElementById("user-email").value;
-
-    let response = await fetch(`/${PREFIX}/view-user`, {
+async function populateAccounts() {
+    let response = await fetch(`/${PREFIX}/get-accounts`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, userEmail})
+        body: JSON.stringify({credentials})
     });
 
-    let json = await response.json();
+    let result = await response.json();
+    const table = document.getElementById("account-table-body");
+    table.innerHTML = "";
 
-    if (response.status == 200) {
-        document.getElementById("user-json").innerHTML = JSON.stringify(json.user);
-    } else {
-        alert(json.error);
+    for (const account of result.accounts) {
+        table.innerHTML += `<tr data-account-name="${account.name}">
+            <td><a href="/${PREFIX}/account.html?name=${account.name}">${account.name}</a></td>
+            <td>${account.billingEmail}</td>
+            <td>${account.subscriptionStatus}</td>
+            <td>${account.minSpendUSD ? account.minSpendUSD : "n/a"}</td>
+            <td>${account.minSpendPerSeatUSD ? account.minSpendPerSeatUSD : "n/a"}</td>
+            <!--  <td>0</td>  -->
+            <!--  <td>0</td>  -->
+            <td>${new Date(account.renewDate * 1000).toLocaleDateString()}</td>
+            <td><a href="https://dashboard.stripe.com/customers/${account.customerId}">Stripe</a></td>
+            <td>${account.invoices.length > 1 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 2]}">Previous</a>` : ""}</td>
+            <td>${account.invoices.length > 0 ? `<a href="https://dashboard.stripe.com/invoices/${account.invoices[account.invoices.length - 1]}">Latest</a>` : ""}</td>
+            <td>${account.subscriptionStatus == "active" ? `<i onclick="cancelAccount('${account.name}')" class="fa-solid fa-xmark ui-icon"></i>` : `<i onclick="activateAccount('${account.name}')" class="fa-solid fa-check ui-icon"></i>`}</td>
+            <td><i onclick="generateInvoice('${account.name}')" class="fa-solid fa-file-invoice-dollar ui-icon"></i></td>
+            <td><i onclick="deleteAccount('${account.name}')" class="fa-solid fa-trash ui-icon"></i></td>
+        </tr>`
     }
 }
 
-async function deleteUser() {
-    let userEmail = document.getElementById("delete-email1").value;
-    let userEmail2 = document.getElementById("delete-email2").value;
+async function createUser() {
+    let email = document.getElementById("new-email").value;
+    let password = document.getElementById("new-password").value;
+    let plan = document.getElementById("plans").value; 
+    let changePassword = document.getElementById("change-password").checked;
 
-    if (userEmail != userEmail2) {
-        alert("Emails don't match!");
-        return;
-    }
+    let account = document.getElementById("new-account").value;
+    if (account == "") account = null;
+    
+    let privilegeLevel = document.getElementById("new-privilege").value;
+    if (privilegeLevel == "null") privilegeLevel = null;
 
-    let response = await fetch(`/${PREFIX}/delete-user`, {
+
+    let response = await fetch(`/${PREFIX}/create-user`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, userEmail})
+        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, account, privilege: privilegeLevel}})
     });
 
     if (response.status == 200) {
-        alert(`User '${userEmail}' deleted`);
+        alert(`User '${email}' created`);
+        populateUsers();
     } else {
         let json = await response.json();
         alert(json.error);
     }
 }
 
-async function banUser() {
-    let userEmail = document.getElementById("ban-email").value;
+async function createAccount() {
+    let name = document.getElementById("new-account-name").value;
+    let minSpend = document.getElementById("monthly-min-spend").valueAsNumber;
+    let plan = document.getElementById("account-plans").value; 
+    let billingEmail = document.getElementById("billing-email").value;
 
+    let newAccount = {name, plan, billingEmail};
+
+    if (document.getElementById('total-min-spend').checked) newAccount.minSpendUSD = minSpend;
+    if (document.getElementById('per-seat-min-spend').checked) newAccount.minSpendPerSeatUSD = minSpend;
+
+    let response = await fetch(`/${PREFIX}/create-account`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, newAccount})
+    });
+
+    if (response.status == 200) {
+        alert(`Account '${name}' created`);
+        populateAccounts();
+    } else {
+        let json = await response.json();
+        alert(json.error);
+    }
+}
+
+async function deleteUser(userEmail) {
+    if (confirm(`Are you sure you want to PERMANENTLY delete user ${userEmail}?`) && confirm(`FINAL WARNING: This will DELETE ${userEmail} - are you sure?`)) {
+        let response = await fetch(`/${PREFIX}/delete-user`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({credentials, userEmail})
+        });
+
+        if (response.status == 200) {
+            alert(`User '${userEmail}' deleted`);
+            populateUsers();
+        } else {
+            let json = await response.json();
+            alert(json.error);
+        }
+    }
+}
+
+async function banUser(userEmail) {
     let response = await fetch(`/${PREFIX}/ban-user`, {
         method: 'POST',
         headers: {
@@ -126,15 +201,14 @@ async function banUser() {
 
     if (response.status == 200) {
         alert(`User '${userEmail}' banned`);
+        populateUsers();
     } else {
         let json = await response.json();
         alert(json.error);
     }
 }
 
-async function unbanUser() {
-    let userEmail = document.getElementById("unban-email").value;
-
+async function unbanUser(userEmail) {
     let response = await fetch(`/${PREFIX}/unban-user`, {
         method: 'POST',
         headers: {
@@ -146,219 +220,92 @@ async function unbanUser() {
 
     if (response.status == 200) {
         alert(`User '${userEmail}' unbanned`);
+        populateUsers();
     } else {
         let json = await response.json();
         alert(json.error);
     }
 }
 
-async function createUser() {
-    let email = document.getElementById("new-email").value;
-    let password = document.getElementById("new-password").value;
-    let plan = document.getElementById("plans").value; 
-    let changePassword = document.getElementById("change-password").checked;
-    let paymentService = null;
-
-    let account = document.getElementById("new-account").value;
-    if (account == "") account = null;
-    
-    let privilegeLevel = document.getElementById("new-privilege").value;
-    if (privilegeLevel == "null") privilegeLevel = null;
-
-    if (plan.endsWith("-manual")) {
-        plan = plan.replaceAll("-manual", "");
-
-        if (plan != "trial") {
-            paymentService = "Manual";
-        }
-    } else {
-        //handle setting up stripe
-    }
-
-    let response = await fetch(`/${PREFIX}/create-user`, {
+async function generateInvoice(account) {
+    let response = await fetch(`/${PREFIX}/generate-invoice`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials, newUser: {email, password, plan, changePassword, paymentService, account, privilege: privilegeLevel}})
+        body: JSON.stringify({credentials, account})
     });
 
-    if (response.status == 200) {
-        alert(`User '${email}' created`);
-    } else {
-        let json = await response.json();
-        alert(json.error);
-    }
+    let result = await response.json();
+    console.log(result);
+
+    populateAccounts();
+
+    alert(`Invoice '${result.invoiceId}' ($${result.subtotalUSD}) created and emailed to ${result.billingEmail}`);
 }
 
-async function getMetrics() {
-    let response = await fetch(`/${PREFIX}/get-metrics`, {
+async function cancelAccount(accountName) {
+    await fetch(`/${PREFIX}/cancel-account`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({credentials})
+        body: JSON.stringify({credentials, accountName})
     });
 
-    let json = await response.json();
-    return json.metrics;
+    populateAccounts();
 }
 
-function drawGraphs() {
-    weeklyUsers();
-    weeklyQueries();
-    weeklyPlans();
+async function activateAccount(accountName) {
+    await fetch(`/${PREFIX}/activate-account`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credentials, accountName})
+    });
+
+    populateAccounts();
 }
 
-function isMonday(time) {
-    let date = new Date(time);
-    return date.getDay() == 1;
-}
-
-function weeklyUsers() {
-
-    const ctx = document.getElementById('weekly-users-graph-canvas');
-
-    let labels = [];
-    let data1 = [];
-    let data2 = [];
-
-    let i = 0;
-    while(!isMonday(metrics[i].time)) {
-        i++;
-    }
-
-    for (; i < metrics.length; i += 7) {
-        let item = metrics[i];
-
-        labels.push(`w/c ${new Date(item.time).toDateString()}`);
-        data1.push(item.active_users_last_7_days)
-        data2.push(item.sign_ups_last_7_days)
-    }
-
-    new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: '# of active users',
-                data: data1,
-                borderWidth: 1
+async function deleteAccount(accountName) {
+    if (confirm(`Are you sure you want to PERMANENTLY delete account ${accountName}?`) && confirm(`FINAL WARNING: This will DELETE the account and ALL associated users - are you sure?`)) {
+        await fetch(`/${PREFIX}/delete-account`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
             },
-            {
-                label: '# of sign ups',
-                data: data2,
-                borderWidth: 1
-            }
-        ]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
+            body: JSON.stringify({credentials, accountName})
+        });
+
+        populateAccounts();
+    }
+}
+
+function searchTwoColumns(inputId, tableId) {
+    const input = document.getElementById(inputId);
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById(tableId);
+    const tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those who don't match the search query
+    for (let i = 0; i < tr.length; i++) {
+        const name = tr[i].getElementsByTagName("td")[0];
+        const email = tr[i].getElementsByTagName("td")[1];
+
+        if (name && email) {
+            nameValue = name.textContent || name.innerText;
+            emailValue = email.textContent || email.innerText;
+
+            if (nameValue.toUpperCase().indexOf(filter) > -1 || emailValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
             }
         }
     }
-    });
-}
-
-function weeklyQueries() {
-
-    const ctx = document.getElementById('weekly-queries-graph-canvas');
-
-    let labels = [];
-    let data1 = [];
-    let data2 = [];
-
-    let i = 0;
-    while(!isMonday(metrics[i].time)) {
-        i++;
-    }
-
-    for (; i < metrics.length; i += 7) {
-        let item = metrics[i];
-        
-        let date = new Date(item.time);
-
-        labels.push(`w/c ${date.toDateString()}`);
-        data1.push(item.text_queries_last_7_days)
-        data2.push(item.image_queries_last_7_days)
-    }
-
-    new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: '# of text queries',
-                data: data1,
-                borderWidth: 1
-            },
-            {
-                label: '# of image queries',
-                data: data2,
-                borderWidth: 1
-            }
-        ]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-    });
-}
-
-function weeklyPlans() {
-
-    const ctx = document.getElementById('weekly-plans-graph-canvas');
-
-    let labels = [];
-    let data1 = [];
-    let data2 = [];
-
-    let i = 0;
-    while(!isMonday(metrics[i].time)) {
-        i++;
-    }
-
-    for (; i < metrics.length; i += 7) {
-        let item = metrics[i];
-
-        labels.push(`w/c ${new Date(item.time).toDateString()}`);
-        data1.push(item.number_of_active_starter_plans)
-        data2.push(item.number_of_active_plus_plans)
-    }
-
-    new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: '# of starter plans',
-                data: data1,
-                borderWidth: 1
-            },
-            {
-                label: '# of plus plans',
-                data: data2,
-                borderWidth: 1
-            }
-        ]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-    });
 }

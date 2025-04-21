@@ -11,6 +11,13 @@ async function getUser(query) {
     return await users.findOne(query);
 }
 
+async function getUsers(query, max=0) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    return await users.find(query).limit(max).toArray();
+}
+
 async function replaceUser(user) {
     await client.connect();
     const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
@@ -35,6 +42,60 @@ async function deleteUser(id) {
     await users.deleteOne({_id: id});
 }
 
+async function getAccount(name) {
+    await client.connect();
+    const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
+
+    return await accounts.findOne({name: name});
+}
+
+async function getAccounts(query, max=0) {
+    await client.connect();
+    const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
+
+    return await accounts.find(query).limit(max).toArray();
+}
+
+async function saveNewAccount(account) {
+    await client.connect();
+    const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
+
+    await accounts.insertOne(account);
+}
+
+async function replaceAccount(account) {
+    await client.connect();
+    const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
+
+    await accounts.replaceOne({_id: account._id}, account);
+}
+
+async function deleteAccountAndUsers(accountName) {
+    await client.connect();
+    const accounts = client.db(process.env.DATABASE_NAME).collection(process.env.ACCOUNT_COLLECTION);
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    await users.deleteMany({account: accountName});
+    await accounts.deleteOne({name: accountName});
+}
+
+async function calculateAccountCreditSpend(name) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    let all = await users.find({account: name}).toArray();
+
+    let total = 0;
+    let count = 0;
+
+    for (const user of all) {
+        count++;
+        total += user.credits;
+    }
+
+    return {creditSpend: total, seats: count};
+}
+
 async function getMetrics() {
     await client.connect();
     const metrics = client.db(process.env.DATABASE_NAME).collection(process.env.METRIC_COLLECTION);
@@ -42,6 +103,24 @@ async function getMetrics() {
     return await metrics.find({}).toArray();
 }
 
+async function getUsersReferredBy(id) {
+    await client.connect();
+    const users = client.db(process.env.DATABASE_NAME).collection(process.env.USER_COLLECTION);
+
+    return await users.find({referredBy: id}).toArray();
+}
+
+async function getUserStates(id) {
+    await client.connect();
+    const states = client.db(process.env.DATABASE_NAME).collection(process.env.STATE_COLLECTION);
+
+    return await states.find({user: id}).toArray();
+}
+
 module.exports = {
-    getUser, replaceUser, saveNewUser, deleteUser, getMetrics
+    getUser, replaceUser, saveNewUser, deleteUser, getUsers,
+    getMetrics, getUsersReferredBy, 
+    getAccount, saveNewAccount, replaceAccount, getAccounts, deleteAccountAndUsers,
+    calculateAccountCreditSpend,
+    getUserStates,
 }
