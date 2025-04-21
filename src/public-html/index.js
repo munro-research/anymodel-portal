@@ -6,6 +6,10 @@ async function initIndex() {
             elem.style.display = "block";
         }
 
+        //Too many users, displaying them all slows down the browser
+        //TODO: paginate users
+        document.getElementById("users").style.display = "none";
+
         populateAccounts();
     } else if (privilege == "org-admin") {
         for (const elem of document.getElementsByClassName("org-admin")) {
@@ -25,9 +29,9 @@ async function initIndex() {
         
         await populateUsage(accountName);
         document.getElementById("view-account-link").href = `/${PREFIX}/account.html?name=${accountName}`;
-    }
 
-    await populateUsers();
+        await populateUsers();
+    }
 }
 
 async function populateUsers() {
