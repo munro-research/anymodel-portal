@@ -173,8 +173,6 @@ async function updateUserQuota() {
 async function updateUserSafety() {
     let settings = null;
 
-    console.log(user);
-
     if (document.getElementById("override-safety").checked) settings = safetySettingState();
     
     await fetch(`/${PREFIX}/update-user-safety-settings`, {
