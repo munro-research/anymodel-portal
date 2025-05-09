@@ -64,7 +64,7 @@ function populateUser(user) {
     document.getElementById("user-id").innerHTML = user._id;
     document.getElementById("user-username").innerHTML = user.username;
     document.getElementById("user-email").innerHTML = user.email;
-    document.getElementById("user-account").innerHTML = user.email = user.account ? `<a href="/${PREFIX}/account.html?name=${user.account}">${user.account}</a>` : "n/a"
+    document.getElementById("user-account").innerHTML = user.email == user.account ? `<a href="/${PREFIX}/account.html?name=${user.account}">${user.account}</a>` : "n/a"
     document.getElementById("user-signup-date").innerHTML = new Date(user.signUpDate).toLocaleString();
     document.getElementById("user-last-used").innerHTML = new Date(user.lastUsed).toLocaleString();
     document.getElementById("user-privilege").innerHTML = user.privilege;
@@ -172,6 +172,7 @@ async function updateUserQuota() {
 
 async function updateUserSafety() {
     let settings = null;
+
     if (document.getElementById("override-safety").checked) settings = safetySettingState();
     
     await fetch(`/${PREFIX}/update-user-safety-settings`, {
